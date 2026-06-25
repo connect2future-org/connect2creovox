@@ -1,0 +1,145 @@
+import { useState, useContext, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { AuthContext } from "../../context/AuthContext";
+import { FaBars, FaTimes, FaChevronDown } from "react-icons/fa";
+import { MdDashboard, MdLogout, MdLogin, MdPersonAdd } from "react-icons/md";
+import Logo from "./Logo";
+import NotificationBell from "./NotificationBell";
+
+const Navbar = () => {
+  const [isOpen, setIsOpen]     = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const { user, logout }        = useContext(AuthContext);
+  const navigate                = useNavigate();
+  const location                = useLocation();
+
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 24);
+    window.addEventListener("scroll", fn);
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+
+  useEffect(() => { setIsOpen(false); }, [location.pathname]);
+
+  const handleLogout = () => { logout(); navigate("/"); };
+
+  const links = [
+    { name: "Home",     path: "/" },
+    { name: "Services", path: "/services" },
+    { name: "About",    path: "/about" },
+    { name: "Contact",  path: "/contact" },
+  ];
+
+  const isActive = (p) => p === "/" ? location.pathname === "/" : location.pathname.startsWith(p);
+
+  return (
+    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-400 ${scrolled ? "navbar-blur" : "bg-white/80"}`}>
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <div className="flex items-center justify-between h-20">
+
+          {/* ── Logo ── */}
+          <Logo />
+
+          {/* ── Desktop links ── */}
+          <nav className="hidden lg:flex items-center gap-7">
+            {links.map((l) => (
+              <Link
+                key={l.name}
+                to={l.path}
+                className={`nav-link ${isActive(l.path) ? "active" : ""}`}
+              >
+                {l.name}
+              </Link>
+            ))}
+          </nav>
+
+          {/* ── Desktop auth ── */}
+          <div className="hidden lg:flex items-center gap-3">
+            {user ? (
+              <>
+                <NotificationBell />
+                <Link
+                  to={user.role === "admin" ? "/admin-dashboard" : "/user-dashboard"}
+                  className="btn btn-ghost text-sm px-4 py-2 flex items-center gap-2"
+                >
+                  <MdDashboard className="text-base" />
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="btn btn-primary text-sm px-5 py-2.5 flex items-center gap-2"
+                >
+                  <MdLogout /> Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login"    className="btn btn-outline text-sm px-5 py-2.5 flex items-center gap-2"><MdLogin /> Login</Link>
+                <Link to="/register" className="btn btn-primary text-sm px-5 py-2.5 flex items-center gap-2"><MdPersonAdd /> Register</Link>
+              </>
+            )}
+          </div>
+
+          {/* ── Mobile toggle ── */}
+          <button
+            className="lg:hidden text-gray-700 text-xl p-2 rounded-xl hover:bg-pink-50 transition-colors"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <FaTimes /> : <FaBars />}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Mobile drawer ── */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.22 }}
+            className="lg:hidden bg-white border-t border-pink-50 shadow-xl"
+          >
+            <div className="px-6 py-6 flex flex-col gap-1">
+              {links.map((l) => (
+                <Link
+                  key={l.name}
+                  to={l.path}
+                  className={`py-3 px-4 rounded-xl font-medium text-sm transition-colors ${
+                    isActive(l.path) ? "bg-pink-50 text-brand-600" : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {l.name}
+                </Link>
+              ))}
+              <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-3">
+                {user ? (
+                  <>
+                    <Link
+                      to={user.role === "admin" ? "/admin-dashboard" : "/user-dashboard"}
+                      className="btn btn-outline text-sm text-center justify-center"
+                    >
+                      <MdDashboard className="mr-2" /> Dashboard
+                    </Link>
+                    <button onClick={handleLogout} className="btn btn-primary text-sm justify-center">
+                      <MdLogout className="mr-2" /> Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login"    className="btn btn-outline text-sm text-center justify-center"><MdLogin className="mr-2"/>Login</Link>
+                    <Link to="/register" className="btn btn-primary text-sm text-center justify-center"><MdPersonAdd className="mr-2"/>Register</Link>
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+};
+
+export default Navbar;
