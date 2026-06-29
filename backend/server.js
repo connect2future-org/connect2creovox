@@ -1,3 +1,6 @@
+const helmet = require("helmet");
+const compression = require("compression");
+const rateLimit = require("express-rate-limit");
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -10,14 +13,34 @@ const authRoutes = require("./src/routes/authRoutes");
 const serviceRoutes = require("./src/routes/serviceRoutes");
 const messageRoutes = require("./src/routes/messageRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
-const notificationRoutes =
-require(
-"./src/routes/notificationRoutes"
-);
-
+const notificationRoutes =require("./src/routes/notificationRoutes");
+const errorHandler =require("./src/middleware/errorHandler");
 
 
 const app = express();
+// Security Headers
+app.use(helmet());
+
+// Compress responses
+app.use(compression());
+
+// Limit request size
+app.use(express.json({
+  limit: "10mb"
+}));
+
+// Rate Limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    success: false,
+    message:
+      "Too many requests. Please try again later."
+  }
+});
+
+app.use(limiter);
 console.log("MONGODB_URI =", process.env.MONGODB_URI);
 connectDB();
 
@@ -37,11 +60,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/bookings", bookingRoutes);
-app.use(
-"/api/notifications",
-notificationRoutes
-);
-
+app.use("/api/notifications",notificationRoutes);
+app.use(errorHandler);
 
 
 

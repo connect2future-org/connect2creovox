@@ -13,10 +13,122 @@ const BookService = () => {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  const handleImageChange = (e) => setImages([...e.target.files]);
+  const handleImageChange = (e) => {
+
+  const selectedFiles = [...e.target.files];
+
+  if (selectedFiles.length > 5) {
+
+    toast.error("You can upload a maximum of 5 images.");
+
+    return;
+
+  }
+
+  for (const file of selectedFiles) {
+
+    if (file.size > 5 * 1024 * 1024) {
+
+      toast.error(`${file.name} exceeds the 5 MB limit.`);
+
+      return;
+
+    }
+
+  }
+
+  setImages(selectedFiles);
+
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      const phoneRegex=/^[6-9]\d{9}$/;
+
+      if(formData.clientName.trim().length<3){
+
+      toast.error("Invalid client name");
+
+      return;
+
+      }
+
+      if(!emailRegex.test(formData.email)){
+
+      toast.error("Invalid email");
+
+      return;
+
+      }
+
+      if(!phoneRegex.test(formData.phone)){
+
+      toast.error("Invalid phone");
+
+      return;
+
+      }
+
+      if(formData.description.trim().length<10){
+
+      toast.error("Description should be at least 10 characters");
+
+      return;
+
+      }
+
+      if(!formData.budget){
+
+      toast.error("Please select budget");
+
+      return;
+
+      }
+      const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      const phoneRegex=/^[6-9]\d{9}$/;
+
+      if(formData.clientName.trim().length<3){
+
+      toast.error("Invalid client name");
+
+      return;
+
+      }
+
+      if(!emailRegex.test(formData.email)){
+
+      toast.error("Invalid email");
+
+      return;
+
+      }
+
+      if(!phoneRegex.test(formData.phone)){
+
+      toast.error("Invalid phone");
+
+      return;
+
+      }
+
+      if(formData.description.trim().length<10){
+
+      toast.error("Description should be at least 10 characters");
+
+      return;
+
+      }
+
+      if(!formData.budget){
+
+      toast.error("Please select budget");
+
+      return;
+
+      }
     setLoading(true);
     try {
       const token = localStorage.getItem("token");

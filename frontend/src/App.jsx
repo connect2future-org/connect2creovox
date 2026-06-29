@@ -47,15 +47,10 @@ function App() {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route
-                path="/user-dashboard"
-                element={
-                  <ProtectedRoute>
-                    <UserDashboard />
-                  </ProtectedRoute>
+              <Route path="/user-dashboard" element={<ProtectedRoute> <UserDashboard /></ProtectedRoute>
                 }
               />
-
+              <Route path="*" element={<NotFound/>}/>
                 <Route
                   path="/admin-dashboard"
                   element={

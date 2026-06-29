@@ -6,19 +6,38 @@ import React from "react";
 import { motion } from "framer-motion";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [email,setEmail]=useState("");
+  const [errors,setErrors]=useState({});
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+    if(!validateLogin()) return;;
     setLoading(true);
     const success = await login(email, password);
     setLoading(false);
     if (success) navigate("/");
   };
+  const validateLogin=()=>{
+
+    const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const newErrors={};
+
+    if(!emailRegex.test(email))
+    newErrors.email="Enter valid email";
+
+    if(password.length<6)
+    newErrors.password="Password too short";
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length===0;
+
+    }
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -55,6 +74,15 @@ const Login = () => {
                 <FaEnvelope className="input-group-icon text-sm" />
                 <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
                   className="input input-icon" placeholder="you@example.com" />
+                  {errors.email&&(
+
+                  <p className="text-red-500 text-xs mt-1">
+
+                  {errors.email}
+
+                  </p>
+
+                  )}
               </div>
             </div>
             <div>
@@ -63,6 +91,15 @@ const Login = () => {
                 <FaLock className="input-group-icon text-sm" />
                 <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
                   className="input input-icon" placeholder="••••••••" />
+                  {errors.password&&(
+
+                  <p className="text-red-500 text-xs mt-1">
+
+                  {errors.password}
+
+                  </p>
+
+                  )}
               </div>
             </div>
             <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center py-4 mt-2 text-base">

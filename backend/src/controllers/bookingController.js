@@ -8,51 +8,172 @@ require("../models/Notification");
 CREATE BOOKING
 ====================================
 */
-
 exports.createBooking = async (req, res) => {
   try {
 
+    const sanitize = (value) =>
+      typeof value === "string"
+        ? value.trim()
+        : "";
+
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const phoneRegex =
+      /^[6-9]\d{9}$/;
+
     const referenceImages =
       req.files?.map(file => file.filename) || [];
+
+    const serviceName = sanitize(req.body.serviceName);
+    const companyName = sanitize(req.body.companyName);
+    const clientName = sanitize(req.body.clientName);
+    const email = sanitize(req.body.email).toLowerCase();
+    const phone = sanitize(req.body.phone);
+    const budget = sanitize(req.body.budget);
+    const description = sanitize(req.body.description);
+
+    // Required Fields
+
+    if (
+      !serviceName ||
+      !clientName ||
+      !email ||
+      !phone ||
+      !description
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill all required fields."
+      });
+    }
+
+    // Email Validation
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address."
+      });
+    }
+
+    // Phone Validation
+
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid 10-digit mobile number."
+      });
+    }
+
+    // Description Validation
+
+    if (description.length < 10) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Description should contain at least 10 characters."
+      });
+    }
+
+    if (description.length > 2000) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Description is too long."
+      });
+    }
+
+    // Name Validation
+
+    if (clientName.length < 3) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Client name must contain at least 3 characters."
+      });
+    }
+
+    if (companyName.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Company name is too long."
+      });
+    }
 
     const booking = await Booking.create({
 
       user: req.user.id,
 
-      serviceName: req.body.serviceName,
+      serviceName,
 
-      companyName: req.body.companyName,
+      companyName,
 
-      clientName: req.body.clientName,
+      clientName,
 
-      email: req.body.email,
+      email,
 
-      phone: req.body.phone,
+      phone,
 
-      budget: req.body.budget,
+      budget,
 
-      description: req.body.description,
+      description,
 
       referenceImages
 
     });
 
-    res.status(201).json({
+    // Notification for user
+
+    await Notification.create({
+
+      user: req.user.id,
+
+      title: "Booking Submitted",
+
+      message:
+        `Your booking for "${serviceName}" has been submitted successfully.`
+
+    });
+
+    return res.status(201).json({
+
       success: true,
-      message: "Booking created successfully",
+
+      message:
+        "Booking created successfully.",
+
       booking
+
     });
 
   } catch (error) {
 
-    console.error(error);
+    console.error("Booking Error:", error);
 
-    res.status(500).json({
+    if (error.name === "ValidationError") {
+
+      return res.status(400).json({
+        success: false,
+        message: Object.values(error.errors)
+          .map(err => err.message)
+          .join(", ")
+      });
+
+    }
+
+    return res.status(500).json({
+
       success: false,
-      message: error.message
+
+      message:
+        "Internal server error."
+
     });
 
   }
+
 };
 
 

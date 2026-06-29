@@ -5,7 +5,7 @@ import { FaArrowRight, FaPhone, FaEnvelope, FaMapMarkerAlt, FaWhatsapp } from "r
 const Contact = () => {
   const [formData, setFormData] = useState({ service:"", budget:"", timeline:"", name:"", email:"", phone:"", company:"", requirements:"" });
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  const handleSubmit = (e) => { e.preventDefault(); alert("Consultation Request Submitted! We'll contact you within 24 hours."); };
+  const handleSubmit = (e) => { e.preventDefault(); if(!validateForm()) return; toast.success("Consultation Request Submitted! We'll contact you within 24 hours."); };
 
   const inputCls = "input";
   const labelCls = "block text-sm font-semibold text-ink mb-2";
@@ -15,6 +15,41 @@ const Contact = () => {
     { icon: <FaEnvelope />,    label: "Email",   items: ["Docs@connect2future.com","Support@connect2future.com"], links: ["mailto:Docs@connect2future.com","mailto:Support@connect2future.com"] },
     { icon: <FaMapMarkerAlt />,label: "Address", items: ["Mysuru, Karnataka, India"], links: [null] },
   ];
+  const [errors,setErrors]=useState({});
+  const validateForm=()=>{
+
+      const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      const phoneRegex=/^[6-9]\d{9}$/;
+
+      const errors={};
+
+      if(!formData.service)
+      errors.service="Select service";
+
+      if(!formData.budget)
+      errors.budget="Select budget";
+
+      if(!formData.timeline)
+      errors.timeline="Select timeline";
+
+      if(formData.name.trim().length<3)
+      errors.name="Invalid name";
+
+      if(!emailRegex.test(formData.email))
+      errors.email="Invalid email";
+
+      if(!phoneRegex.test(formData.phone))
+      errors.phone="Invalid phone";
+
+      if(formData.requirements.trim().length<10)
+      errors.requirements="Minimum 10 characters";
+
+      setErrors(errors);
+
+      return Object.keys(errors).length===0;
+
+      }
 
   return (
     <div className="pt-20 bg-white">

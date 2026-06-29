@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide a name'],
     trim: true,
-    maxlength: [50, 'Name cannot be more than 50 characters']
+    minlength: [3, "Name must contain at least 3 characters"],
+    maxlength: [50, "Name cannot exceed 50 characters"]
   },
   email: {
     type: String,
@@ -31,17 +32,21 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    trim: true
-  },
-  company: {
+    trim: true,
+    match: [/^[6-9]\d{9}$/, "Please enter a valid mobile number"]
+},
+
+company: {
     type: String,
-    trim: true
-  },
-  createdAt: {
+    trim: true,
+    maxlength: [100, "Company name cannot exceed 100 characters"]
+},
+createdAt: {
     type: Date,
     default: Date.now
   }
-}, {
+}, 
+{
   timestamps: true
 });
 

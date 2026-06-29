@@ -8,20 +8,28 @@ const messageSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Please provide your email'],
+    required: true,
     lowercase: true,
-    trim: true
-  },
-  subject: {
+    trim: true,
+    match: [
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        "Invalid email"
+    ]
+},
+subject: {
     type: String,
-    required: [true, 'Please provide a subject'],
-    trim: true
-  },
-  message: {
+    required: true,
+    trim: true,
+    minlength: 5,
+    maxlength: 100
+},
+message: {
     type: String,
-    required: [true, 'Please provide a message'],
-    trim: true
-  },
+    required: true,
+    trim: true,
+    minlength: 10,
+    maxlength: 2000
+},
   isRead: {
     type: Boolean,
     default: false

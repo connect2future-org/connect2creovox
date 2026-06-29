@@ -1,21 +1,26 @@
 const mongoose = require('mongoose');
 
 const serviceSchema = new mongoose.Schema({
-  title: {
+title: {
     type: String,
-    required: [true, 'Please provide a service title'],
-    trim: true
-  },
-  description: {
+    required: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 80
+},
+description: {
     type: String,
-    required: [true, 'Please provide a service description'],
-    trim: true
-  },
-  price: {
+    required: true,
+    trim: true,
+    minlength: 20,
+    maxlength: 1000
+},
+price: {
     type: String,
-    required: [true, 'Please provide pricing information'],
-    trim: true
-  },
+    required: true,
+    trim: true,
+    maxlength: 50
+},
   category: {
     type: String,
     required: [true, 'Please provide a category'],
@@ -26,10 +31,11 @@ const serviceSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  features: [{
+features: [{
     type: String,
-    trim: true
-  }],
+    trim: true,
+    maxlength: 100
+}],
   isActive: {
     type: Boolean,
     default: true

@@ -15,27 +15,45 @@ const bookingSchema = new mongoose.Schema(
 
   serviceName: {
     type: String,
-    required: true
-  },
-
+    required: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 100
+},
   companyName: {
-    type: String
-  },
+    type: String,
+    trim: true,
+    maxlength: 100
+},
 
   clientName: {
     type: String,
-    required: true
-  },
+    required: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 50
+},
 
   email: {
     type: String,
-    required: true
-  },
+    required: true,
+    lowercase: true,
+    trim: true,
+    match: [
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        "Invalid email address"
+    ]
+},
 
-  phone: {
+ phone: {
     type: String,
-    required: true
-  },
+    required: true,
+    trim: true,
+    match: [
+        /^[6-9]\d{9}$/,
+        "Invalid phone number"
+    ]
+},
 
   budget: {
     type: String
@@ -43,8 +61,11 @@ const bookingSchema = new mongoose.Schema(
 
   description: {
     type: String,
-    required: true
-  },
+    required: true,
+    trim: true,
+    minlength: 10,
+    maxlength: 2000
+},
 
   referenceImages: [
     {
@@ -67,8 +88,10 @@ const bookingSchema = new mongoose.Schema(
 
   adminNotes: {
     type: String,
+    trim: true,
+    maxlength: 1000,
     default: ""
-  },
+},
   projectFiles: [
     {
       fileName: String,

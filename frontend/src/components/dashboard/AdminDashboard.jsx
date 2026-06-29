@@ -1,410 +1,845 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
+import toast from "react-hot-toast";
 
 import {
-FaUsers,
-FaProjectDiagram,
-FaCheckCircle,
-FaClock,
-FaFileUpload,
-FaFileAlt
+  FaUsers,
+  FaProjectDiagram,
+  FaCheckCircle,
+  FaClock,
+  FaFileUpload,
+  FaFileAlt,
+  FaSyncAlt,
+  FaSearch,
 } from "react-icons/fa";
+
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000";
 
 const AdminDashboard = () => {
 
-const [bookings, setBookings] = useState([]);
-const [loading, setLoading] = useState(true);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
-useEffect(() => {
-fetchBookings();
-}, []);
+  useEffect(() => {
+    fetchBookings();
+  }, []);
 
-const fetchBookings = async () => {
-try {
+  // ===========================
+  // Fetch All Bookings
+  // ===========================
 
+  const fetchBookings = async () => {
 
-  const response =
-    await api.get("/api/bookings/all");
+    try {
 
-  setBookings(
-    response.data.bookings || []
-  );
+      setLoading(true);
 
-} catch (error) {
+      const response =
+        await api.get("/api/bookings/all");
 
-  console.log(error);
+      setBookings(
+        response.data.bookings || []
+      );
 
-} finally {
+    } catch (error) {
 
-  setLoading(false);
+      toast.error(
 
-}
+        error.response?.data?.message ||
 
+        "Unable to fetch bookings."
 
-};
+      );
 
-const updateStatus = async (
-bookingId,
-status
-) => {
+    } finally {
 
+      setLoading(false);
 
-try {
-
-  await api.put(
-    `/api/bookings/status/${bookingId}`,
-    { status }
-  );
-
-  fetchBookings();
-
-} catch (error) {
-
-  console.log(error);
-
-}
-
-
-};
-
-const updateNotes = async (
-bookingId,
-notes
-) => {
-
-
-try {
-
-  await api.put(
-    `/api/bookings/notes/${bookingId}`,
-    {
-      adminNotes: notes
     }
-  );
 
-  fetchBookings();
+  };
 
-} catch (error) {
+  // ===========================
+  // Update Booking Status
+  // ===========================
 
-  console.log(error);
+  const updateStatus = async (
+    bookingId,
+    status
+  ) => {
 
-}
+    const confirmed = window.confirm(
 
+      `Change booking status to "${status}"?`
 
-};
+    );
 
-const uploadFile = async (
-bookingId,
-file
-) => {
+    if (!confirmed) return;
 
+    try {
 
-try {
+      await api.put(
 
-  const formData =
-    new FormData();
+        `/api/bookings/status/${bookingId}`,
 
-  formData.append(
-    "file",
+        { status }
+
+      );
+
+      toast.success("Status Updated");
+
+      fetchBookings();
+
+    } catch (error) {
+
+      toast.error(
+
+        error.response?.data?.message ||
+
+        "Unable to update status."
+
+      );
+
+    }
+
+  };
+
+  // ===========================
+  // Update Admin Notes
+  // ===========================
+
+  const updateNotes = async (
+    bookingId,
+    notes
+  ) => {
+
+    try {
+
+      await api.put(
+
+        `/api/bookings/notes/${bookingId}`,
+
+        {
+
+          adminNotes: notes
+
+        }
+
+      );
+
+      toast.success("Notes Saved");
+
+      fetchBookings();
+
+    } catch (error) {
+
+      toast.error(
+
+        error.response?.data?.message ||
+
+        "Unable to save notes."
+
+      );
+
+    }
+
+  };
+
+  // ===========================
+  // Upload Deliverables
+  // ===========================
+
+  const uploadFile = async (
+    bookingId,
     file
-  );
+  ) => {
 
-  await api.post(
-    `/api/bookings/upload-file/${bookingId}`,
-    formData,
-    {
-      headers: {
-        "Content-Type":
-          "multipart/form-data"
-      }
+    if (!file) return;
+
+    const confirmUpload = window.confirm(
+
+      `Upload "${file.name}"?`
+
+    );
+
+    if (!confirmUpload) return;
+
+    const allowedTypes = [
+
+      "application/pdf",
+
+      "image/jpeg",
+
+      "image/png",
+
+      "application/zip"
+
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+
+      toast.error(
+
+        "Only PDF, JPG, PNG and ZIP files are allowed."
+
+      );
+
+      return;
+
     }
-  );
 
-  fetchBookings();
+    if (
 
-} catch (error) {
+      file.size >
 
-  console.log(error);
+      20 * 1024 * 1024
 
-}
+    ) {
 
+      toast.error(
 
-};
+        "Maximum file size is 20 MB."
 
-const totalRequests =
-bookings.length;
+      );
 
-const pendingRequests =
-bookings.filter(
-b => b.status === "Pending"
-).length;
+      return;
 
-const activeProjects =
-bookings.filter(
-b =>
-b.status === "Reviewing" ||
-b.status === "Proposal Sent" ||
-b.status === "In Progress"
-).length;
+    }
 
-const completedProjects =
-bookings.filter(
-b => b.status === "Completed"
-).length;
+    try {
 
-if (loading) {
+      const formData =
+        new FormData();
 
+      formData.append(
 
-return (
-  <div className="min-h-screen flex items-center justify-center">
-    Loading Dashboard...
-  </div>
-);
+        "file",
 
+        file
 
-}
+      );
 
-return (
+      await api.post(
 
+        `/api/bookings/upload-file/${bookingId}`,
+
+        formData,
+
+        {
+
+          headers: {
+
+            "Content-Type":
+
+              "multipart/form-data"
+
+          }
+
+        }
+
+      );
+
+      toast.success(
+
+        "File uploaded successfully."
+
+      );
+
+      fetchBookings();
+
+    } catch (error) {
+
+      toast.error(
+
+        error.response?.data?.message ||
+
+        "Upload failed."
+
+      );
+
+    }
+
+  };
+
+  // ===========================
+  // Search Filter
+  // ===========================
+
+  const filteredBookings =
+    bookings.filter((booking) => {
+
+      const keyword =
+        search.toLowerCase();
+
+      return (
+
+        booking.clientName
+          ?.toLowerCase()
+          .includes(keyword)
+
+        ||
+
+        booking.serviceName
+          ?.toLowerCase()
+          .includes(keyword)
+
+        ||
+
+        booking.email
+          ?.toLowerCase()
+          .includes(keyword)
+
+      );
+
+    });
+
+  // ===========================
+  // Statistics
+  // ===========================
+
+  const totalRequests =
+    bookings.length;
+
+  const pendingRequests =
+    bookings.filter(
+
+      (b) => b.status === "Pending"
+
+    ).length;
+
+  const activeProjects =
+    bookings.filter(
+
+      (b) =>
+
+        b.status === "Reviewing" ||
+
+        b.status === "Proposal Sent" ||
+
+        b.status === "In Progress"
+
+    ).length;
+
+  const completedProjects =
+    bookings.filter(
+
+      (b) =>
+
+        b.status === "Completed"
+
+    ).length;
+
+  // ===========================
+  // Loading Screen
+  // ===========================
+
+  if (loading) {
+
+    return (
+
+      <div className="min-h-screen flex items-center justify-center">
+
+        <div className="text-center">
+
+          <div className="w-12 h-12 border-4 border-pink-300 border-t-pink-600 rounded-full animate-spin mx-auto"></div>
+
+          <p className="mt-5 text-gray-500">
+
+            Loading Dashboard...
+
+          </p>
+
+        </div>
+
+      </div>
+
+    );
+
+  }
+  return (
 
 <div className="pt-28 pb-20 bg-[#fffaf5] min-h-screen">
 
   <div className="max-w-7xl mx-auto px-6">
 
-    <div className="mb-10">
+    {/* ===========================
+        Header
+    =========================== */}
 
-      <h1 className="text-5xl font-bold">
-        Admin Dashboard
-      </h1>
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-10">
 
-      <p className="text-gray-500 mt-3">
-        Manage all client projects and requests.
-      </p>
+      <div>
+
+        <h1 className="text-5xl font-bold text-gray-800">
+
+          Admin Dashboard
+
+        </h1>
+
+        <p className="text-gray-500 mt-3">
+
+          Manage bookings, deliverables, project updates and client communication.
+
+        </p>
+
+      </div>
+
+      <button
+
+        onClick={fetchBookings}
+
+        className="btn btn-outline mt-5 lg:mt-0 flex items-center gap-2"
+
+      >
+
+        <FaSyncAlt />
+
+        Refresh
+
+      </button>
 
     </div>
+
+    {/* ===========================
+        Dashboard Cards
+    =========================== */}
 
     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
       <div className="service-card text-center">
+
         <FaUsers className="mx-auto text-4xl text-pink-500 mb-4" />
+
         <h3 className="font-bold text-xl">
+
           Total Requests
+
         </h3>
-        <p>{totalRequests}</p>
+
+        <p className="text-3xl font-bold mt-3">
+
+          {totalRequests}
+
+        </p>
+
       </div>
 
       <div className="service-card text-center">
+
         <FaClock className="mx-auto text-4xl text-yellow-500 mb-4" />
+
         <h3 className="font-bold text-xl">
+
           Pending
+
         </h3>
-        <p>{pendingRequests}</p>
+
+        <p className="text-3xl font-bold mt-3">
+
+          {pendingRequests}
+
+        </p>
+
       </div>
 
       <div className="service-card text-center">
+
         <FaProjectDiagram className="mx-auto text-4xl text-blue-500 mb-4" />
+
         <h3 className="font-bold text-xl">
-          Active
+
+          Active Projects
+
         </h3>
-        <p>{activeProjects}</p>
+
+        <p className="text-3xl font-bold mt-3">
+
+          {activeProjects}
+
+        </p>
+
       </div>
 
       <div className="service-card text-center">
+
         <FaCheckCircle className="mx-auto text-4xl text-green-500 mb-4" />
+
         <h3 className="font-bold text-xl">
+
           Completed
+
         </h3>
-        <p>{completedProjects}</p>
+
+        <p className="text-3xl font-bold mt-3">
+
+          {completedProjects}
+
+        </p>
+
       </div>
 
     </div>
 
-    <div className="bg-white rounded-3xl p-8 shadow-lg">
-
-      <h2 className="text-2xl font-bold mb-8">
+    {/* ===========================
         Client Requests
-      </h2>
+    =========================== */}
 
-      <div className="space-y-8">
+    <div className="bg-white rounded-3xl shadow-lg p-8">
 
-        {bookings.map((booking) => (
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
 
-          <div
-            key={booking._id}
-            className="border rounded-2xl p-6"
-          >
+        <h2 className="text-2xl font-bold">
 
-            <div className="flex justify-between items-start">
+          Client Requests
 
-              <div>
+        </h2>
 
-                <h3 className="font-bold text-xl">
-                  {booking.serviceName}
-                </h3>
+        <div className="relative w-full lg:w-96">
 
-                <p className="text-gray-600 mt-2">
-                  {booking.clientName}
-                </p>
+          <FaSearch className="absolute left-4 top-4 text-gray-400" />
 
-                <p className="text-gray-500 text-sm">
-                  {booking.email}
-                </p>
+          <input
 
-                <p className="text-gray-500 text-sm">
-                  {booking.phone}
-                </p>
+            type="text"
 
-              </div>
+            placeholder="Search client, email or service..."
 
-              <select
-                value={booking.status}
-                onChange={(e) =>
-                  updateStatus(
-                    booking._id,
-                    e.target.value
-                  )
-                }
-                className="border rounded-xl px-3 py-2"
-              >
-                <option>Pending</option>
-                <option>Reviewing</option>
-                <option>Proposal Sent</option>
-                <option>In Progress</option>
-                <option>Completed</option>
-                <option>Rejected</option>
-              </select>
+            value={search}
 
-            </div>
+            onChange={(e)=>setSearch(e.target.value)}
 
-            <div className="mt-5">
+            className="w-full border rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:ring-2 focus:ring-pink-300"
 
-              <p className="font-semibold">
-                Project Description
-              </p>
+          />
 
-              <p className="text-gray-600 mt-2">
-                {booking.description}
-              </p>
-
-            </div>
-
-            <div className="mt-5">
-
-              <label className="font-semibold block mb-2">
-                Admin Notes
-              </label>
-
-              <textarea
-                defaultValue={
-                  booking.adminNotes || ""
-                }
-                onBlur={(e) =>
-                  updateNotes(
-                    booking._id,
-                    e.target.value
-                  )
-                }
-                rows="4"
-                className="w-full border rounded-xl p-3"
-                placeholder="Write notes for client..."
-              />
-
-            </div>
-
-            <div className="mt-5">
-
-              <label className="font-semibold flex items-center gap-2 mb-3">
-                <FaFileUpload />
-                Upload Deliverables
-              </label>
-
-              <input
-                type="file"
-                onChange={(e) =>
-                  uploadFile(
-                    booking._id,
-                    e.target.files[0]
-                  )
-                }
-                className="border rounded-xl p-2"
-              />
-
-            </div>
-
-            {booking.projectFiles?.length > 0 && (
-
-              <div className="mt-5">
-
-                <h4 className="font-semibold mb-3">
-                  Uploaded Files
-                </h4>
-
-                <div className="space-y-2">
-
-                  {booking.projectFiles.map(
-                    (file, index) => (
-
-                      <a
-                        key={index}
-                        href={`http://localhost:5000/uploads/project-files/${file.filePath}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-2 text-blue-500 hover:text-blue-700"
-                      >
-                        <FaFileAlt />
-                        {file.fileName}
-                      </a>
-
-                    )
-                  )}
-
-                </div>
-
-              </div>
-
-            )}
-
-            {booking.referenceImages?.length > 0 && (
-
-              <div className="mt-5">
-
-                <p className="font-semibold mb-3">
-                  Reference Images
-                </p>
-
-                <div className="flex flex-wrap gap-3">
-
-                  {booking.referenceImages.map(
-                    (img, index) => (
-
-                      <img
-                        key={index}
-                        src={`http://localhost:5000/uploads/${img}`}
-                        alt=""
-                        className="w-24 h-24 object-cover rounded-xl border"
-                      />
-
-                    )
-                  )}
-
-                </div>
-
-              </div>
-
-            )}
-
-          </div>
-
-        ))}
+        </div>
 
       </div>
+
+      {
+
+      filteredBookings.length===0 ?
+
+      (
+
+      <div className="text-center py-20">
+
+        <FaUsers className="mx-auto text-6xl text-pink-200 mb-5"/>
+
+        <h2 className="text-2xl font-bold text-gray-700">
+
+          No Client Requests Found
+
+        </h2>
+
+        <p className="text-gray-500 mt-3">
+
+          Booking requests will appear here once clients submit them.
+
+        </p>
+
+      </div>
+
+      )
+
+      :
+
+      (
+
+      <div className="space-y-8">
+        {filteredBookings.map((booking) => (
+
+  <div
+    key={booking._id}
+    className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300"
+  >
+
+    {/* ======================
+        Header
+    ====================== */}
+
+    <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-5">
+
+      <div>
+
+        <h3 className="text-2xl font-bold text-gray-800">
+          {booking.serviceName}
+        </h3>
+
+        <p className="text-gray-600 mt-2">
+          <strong>Client:</strong> {booking.clientName}
+        </p>
+
+        <p className="text-gray-500">
+          {booking.email}
+        </p>
+
+        <p className="text-gray-500">
+          {booking.phone}
+        </p>
+
+      </div>
+
+      <select
+        value={booking.status}
+        onChange={(e) =>
+          updateStatus(
+            booking._id,
+            e.target.value
+          )
+        }
+        className={`border rounded-xl px-4 py-2 font-semibold
+
+        ${booking.status==="Completed"
+        ? "bg-green-100 text-green-700"
+
+        : booking.status==="Rejected"
+
+        ? "bg-red-100 text-red-700"
+
+        : booking.status==="Pending"
+
+        ? "bg-yellow-100 text-yellow-700"
+
+        : "bg-blue-100 text-blue-700"
+        }
+
+        `}
+      >
+
+        <option>Pending</option>
+
+        <option>Reviewing</option>
+
+        <option>Proposal Sent</option>
+
+        <option>In Progress</option>
+
+        <option>Completed</option>
+
+        <option>Rejected</option>
+
+      </select>
+
+    </div>
+
+    {/* ======================
+        Description
+    ====================== */}
+
+    <div className="mt-6">
+
+      <h4 className="font-semibold text-lg mb-2">
+        Project Description
+      </h4>
+
+      <p className="text-gray-600 leading-7">
+        {booking.description}
+      </p>
+
+    </div>
+
+    {/* ======================
+        Admin Notes
+    ====================== */}
+
+    <div className="mt-6">
+
+      <label className="font-semibold block mb-3">
+
+        Admin Notes
+
+      </label>
+
+      <textarea
+
+        defaultValue={
+          booking.adminNotes || ""
+        }
+
+        onBlur={(e)=>
+
+          updateNotes(
+            booking._id,
+            e.target.value
+          )
+
+        }
+
+        rows={4}
+
+        className="w-full border rounded-xl p-4"
+
+        placeholder="Write internal notes..."
+
+      />
+
+    </div>
+
+    {/* ======================
+        Upload Deliverables
+    ====================== */}
+
+    <div className="mt-6">
+
+      <label className="font-semibold flex items-center gap-2 mb-3">
+
+        <FaFileUpload />
+
+        Upload Deliverables
+
+      </label>
+
+      <input
+
+        type="file"
+
+        onChange={(e)=>
+
+          uploadFile(
+
+            booking._id,
+
+            e.target.files[0]
+
+          )
+
+        }
+
+        className="border rounded-xl p-3 w-full"
+
+      />
+
+    </div>
+
+    {/* ======================
+        Uploaded Files
+    ====================== */}
+
+    {
+
+      booking.projectFiles?.length>0 &&
+
+      (
+
+      <div className="mt-6">
+
+        <h4 className="font-semibold mb-3">
+
+          Uploaded Files
+
+        </h4>
+
+        <div className="space-y-3">
+
+          {
+
+          booking.projectFiles.map(
+
+          (file,index)=>(
+
+          <a
+
+            key={index}
+
+            href={`${BASE_URL}/uploads/project-files/${file.filePath}`}
+
+            target="_blank"
+
+            rel="noreferrer"
+
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+
+          >
+
+            <FaFileAlt />
+
+            {file.fileName}
+
+          </a>
+
+          )
+
+          )
+
+          }
+
+        </div>
+
+      </div>
+
+      )
+
+    }
+
+    {/* ======================
+        Reference Images
+    ====================== */}
+
+    {
+
+      booking.referenceImages?.length>0 &&
+
+      (
+
+      <div className="mt-6">
+
+        <h4 className="font-semibold mb-3">
+
+          Reference Images
+
+        </h4>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+          {
+
+          booking.referenceImages.map(
+
+          (img,index)=>(
+
+          <img
+
+            key={index}
+
+            src={`${BASE_URL}/uploads/${img}`}
+
+            alt="Reference"
+
+            className="rounded-xl border object-cover h-28 w-full"
+
+          />
+
+          )
+
+          )
+
+          }
+
+        </div>
+
+      </div>
+
+      )
+
+    }
+
+  </div>
+
+))}
+
+      </div>
+
+      )}
 
     </div>
 
   </div>
 
 </div>
-
 
 );
 

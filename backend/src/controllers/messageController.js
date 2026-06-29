@@ -1,12 +1,86 @@
 const Message = require('../models/Message');
 const nodemailer = require('nodemailer');
 
-// @desc    Send message
+// @desc    Send Message
 // @route   POST /api/messages
 // @access  Public
+
 exports.sendMessage = async (req, res) => {
   try {
-    const { name, email, subject, message } = req.body;
+
+    const sanitize = (value) =>
+      typeof value === "string"
+        ? value.trim()
+        : "";
+
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    let {
+      name,
+      email,
+      subject,
+      message
+    } = req.body;
+
+    name = sanitize(name);
+    email = sanitize(email).toLowerCase();
+    subject = sanitize(subject);
+    message = sanitize(message);
+
+    // Required Fields
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill all required fields."
+      });
+    }
+
+    // Name Validation
+
+    if (name.length < 3 || name.length > 50) {
+      return res.status(400).json({
+        success: false,
+        message: "Name must contain between 3 and 50 characters."
+      });
+    }
+
+    // Email Validation
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address."
+      });
+    }
+
+    // Subject Validation
+
+    if (subject.length < 5 || subject.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Subject must contain between 5 and 100 characters."
+      });
+    }
+
+    // Message Validation
+
+    if (message.length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: "Message should contain at least 10 characters."
+      });
+    }
+
+    if (message.length > 2000) {
+      return res.status(400).json({
+        success: false,
+        message: "Message is too long."
+      });
+    }
+
+    // Save Message
 
     const newMessage = await Message.create({
       name,
@@ -15,47 +89,103 @@ exports.sendMessage = async (req, res) => {
       message
     });
 
-    // Send email notification
+    // Send Email (optional)
+
     try {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      });
 
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: process.env.EMAIL_USER,
-        subject: `New Contact Message: ${subject}`,
-        html: `
-          <h3>New Message from Connect2Crevox Website</h3>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <p><strong>Message:</strong></p>
-          <p>${message}</p>
-        `
-      };
+      if (
+        process.env.EMAIL_USER &&
+        process.env.EMAIL_PASS &&
+        process.env.EMAIL_USER !== "your_email@gmail.com"
+      ) {
 
-      await transporter.sendMail(mailOptions);
-    } catch (emailError) {
-      console.log('Email notification failed:', emailError.message);
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+          }
+        });
+
+        await transporter.sendMail({
+
+          from: process.env.EMAIL_USER,
+
+          to: process.env.EMAIL_USER,
+
+          subject: `New Contact Message : ${subject}`,
+
+          html: `
+            <h2>New Contact Form Submission</h2>
+
+            <p><strong>Name:</strong> ${name}</p>
+
+            <p><strong>Email:</strong> ${email}</p>
+
+            <p><strong>Subject:</strong> ${subject}</p>
+
+            <hr>
+
+            <p>${message}</p>
+          `
+        });
+
+      }
+
+    } catch (mailError) {
+
+      console.error(
+        "Email Error:",
+        mailError.message
+      );
+
     }
 
-    res.status(201).json({
+    return res.status(201).json({
+
       success: true,
-      message: 'Message sent successfully',
+
+      message:
+        "Message sent successfully.",
+
       data: newMessage
+
     });
+
   } catch (error) {
-    res.status(500).json({
+
+    console.error(
+      "Send Message Error:",
+      error
+    );
+
+    if (error.name === "ValidationError") {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message: Object.values(error.errors)
+          .map(err => err.message)
+          .join(", ")
+
+      });
+
+    }
+
+    return res.status(500).json({
+
       success: false,
-      message: error.message
+
+      message:
+        "Internal server error."
+
     });
+
   }
 };
+
+
 
 // @desc    Get all messages
 // @route   GET /api/messages
