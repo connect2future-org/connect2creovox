@@ -2,6 +2,8 @@ const helmet = require("helmet");
 const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const express = require("express");
+const app = express();
+app.set("trust proxy", 1);
 const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
