@@ -1,18 +1,40 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+
 const {
   getServices,
   getService,
   createService,
   updateService,
-  deleteService
-} = require('../controllers/serviceController');
-const { protect, admin } = require('../middleware/auth');
+  deleteService,
+} = require("../controllers/serviceController");
 
-router.get('/', getServices);
-router.get('/:id', getService);
-router.post('/', protect, admin, createService);
-router.put('/:id', protect, admin, updateService);
-router.delete('/:id', protect, admin, deleteService);
+const { protect, authorize } = require("../middleware/auth");
+
+// Public Routes
+router.get("/", getServices);
+router.get("/:id", getService);
+
+// Admin Routes
+router.post(
+  "/",
+  protect,
+  authorize("admin"),
+  createService
+);
+
+router.put(
+  "/:id",
+  protect,
+  authorize("admin"),
+  updateService
+);
+
+router.delete(
+  "/:id",
+  protect,
+  authorize("admin"),
+  deleteService
+);
 
 module.exports = router;

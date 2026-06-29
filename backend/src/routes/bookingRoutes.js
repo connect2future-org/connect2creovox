@@ -5,7 +5,7 @@ const router = express.Router();
 const upload =
 require("../middleware/upload");
 
-const {protect,admin} =
+const {protect,authorize} =
 require("../middleware/auth");
 
 
@@ -44,7 +44,7 @@ router.get(
 router.get(
  "/all",
  protect,
- admin,
+ authorize("admin"),
  getAllBookings
 );
 
@@ -53,24 +53,31 @@ router.get(
 router.put(
  "/status/:id",
  protect,
- admin,
+ authorize("admin"),
  updateStatus
 );
+
+
+
 
 router.put(
  "/notes/:id",
  protect,
- admin,
+ authorize("admin"),
  updateAdminNotes
 );
+
+
+
 
 router.post(
 "/upload-file/:id",
 protect,
-admin,
+authorize("admin"),
 projectUpload.single("file"),
 uploadProjectFile
 );
+
 
 
 
