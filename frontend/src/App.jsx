@@ -22,7 +22,7 @@ import AdminRoute from "./components/routes/AdminRoute";
 import AnimatedMascots from "./components/common/AnimatedMascots";
 import MascotSpeech from "./components/common/MascotSpeech";
 import AnimatedBackground from "./components/common/AnimatedBackground";
-
+import NotFound from "./pages/NotFound";
 
 
 
