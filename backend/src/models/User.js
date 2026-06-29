@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-
+const crypto = require("crypto");
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -15,9 +15,9 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     match: [
-      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-      'Please provide a valid email'
-    ]
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    "Please provide a valid email"
+]
   },
   password: {
     type: String,
@@ -30,6 +30,18 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+},
+
+verificationToken: {
+    type: String,
+},
+
+verificationTokenExpire: {
+    type: Date,
+},
   phone: {
     type: String,
     trim: true,
@@ -53,15 +65,34 @@ createdAt: {
 // Hash password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
-    next();
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
 // Compare password method
 userSchema.methods.comparePassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+userSchema.methods.getVerificationToken = function () {
+
+    const verificationToken =
+        crypto.randomBytes(32).toString("hex");
+
+    this.verificationToken =
+        crypto
+            .createHash("sha256")
+            .update(verificationToken)
+            .digest("hex");
+
+    this.verificationTokenExpire =
+        Date.now() + 24 * 60 * 60 * 1000;
+
+    return verificationToken;
+
+};
+
 
 module.exports = mongoose.model('User', userSchema);

@@ -5,6 +5,8 @@ import { FaUser, FaEnvelope, FaLock, FaArrowRight } from "react-icons/fa";
 import toast from "react-hot-toast";
 import React from "react";
 import { motion } from "framer-motion";
+import api from "../../utils/api";
+
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -17,7 +19,7 @@ const Register = () => {
 
 const [errors, setErrors] = useState({});
 const [loading, setLoading] = useState(false);
-  const { register } = useContext(AuthContext);
+  const { } = useContext(AuthContext);
   const navigate = useNavigate();
   const handleChange = (e) => {
   const { name, value } = e.target;
@@ -34,47 +36,54 @@ const [loading, setLoading] = useState(false);
 };
 const handleSubmit = async (e) => {
 
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!validateForm()) return;
+    if (formData.password !== formData.confirmPassword) {
 
-  setLoading(true);
+        toast.error("Passwords do not match");
 
-  try {
-
-    const {
-      confirmPassword,
-      ...data
-    } = formData;
-
-    const success =
-      await register(data);
-
-    if (success) {
-
-      toast.success(
-        "Registration Successful!"
-      );
-
-      navigate("/");
+        return;
 
     }
 
-  } catch (error) {
+    const { confirmPassword, ...data } = formData;
 
-    toast.error(
+    try {
 
-      error?.response?.data?.message ||
+        setLoading(true);
 
-      "Registration Failed"
+        const response = await api.post(
+            "/api/auth/register",
+            data
+        );
 
-    );
+        toast.success(response.data.message);
 
-  } finally {
+        toast.success(
+            "Verification email sent. Please check your inbox."
+        );
 
-    setLoading(false);
+        navigate("/login");
 
-  }
+    }
+
+    catch (error) {
+
+        toast.error(
+
+            error.response?.data?.message ||
+
+            "Registration failed."
+
+        );
+
+    }
+
+    finally {
+
+        setLoading(false);
+
+    }
 
 };
   const validateForm = () => {
@@ -173,23 +182,17 @@ const handleSubmit = async (e) => {
                   )}
               </div>
             ))}
-            <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center py-4 mt-2 text-base">
-             {loading ? (
+          <button
+          type="submit"
+          disabled={loading}
+          className="btn btn-primary w-full justify-center py-4 mt-2 text-base"
+          >
 
-              "Creating Account..."
+          {loading ? "Creating Account..." : "Create Account"}
 
-              ) : (
+          <FaArrowRight/>
 
-              <>
-
-              Create Account
-
-              <FaArrowRight />
-
-              </>
-
-              )}
-            </button>
+          </button>
           </form>
           <p className="text-center mt-8 text-sm text-ink-muted">
             Already have an account?{" "}

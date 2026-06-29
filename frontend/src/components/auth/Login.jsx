@@ -2,119 +2,281 @@ import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { FaEnvelope, FaLock, FaArrowRight } from "react-icons/fa";
-import React from "react";
 import { motion } from "framer-motion";
+import api from "../../utils/api";
+import toast from "react-hot-toast";
 
 const Login = () => {
-  const [email,setEmail]=useState("");
-  const [errors,setErrors]=useState({});
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if(!validateLogin()) return;;
-    setLoading(true);
-    const success = await login(email, password);
-    setLoading(false);
-    if (success) navigate("/");
-  };
-  const validateLogin=()=>{
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-    const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const [loading, setLoading] = useState(false);
+  const [showResend, setShowResend] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
-    const newErrors={};
+  const [errors, setErrors] = useState({});
 
-    if(!emailRegex.test(email))
-    newErrors.email="Enter valid email";
+  const validateLogin = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if(password.length<6)
-    newErrors.password="Password too short";
+    const newErrors = {};
+
+    if (!emailRegex.test(email)) {
+      newErrors.email = "Enter a valid email";
+    }
+
+    if (password.length < 6) {
+      newErrors.password = "Password must contain at least 6 characters";
+    }
 
     setErrors(newErrors);
 
-    return Object.keys(newErrors).length===0;
+    return Object.keys(newErrors).length === 0;
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateLogin()) return;
+
+    setLoading(true);
+
+    try {
+      const success = await login(email, password);
+
+      if (success) {
+        navigate("/");
+      }
+    } catch (error) {
+      if (error.response?.status === 403) {
+        setShowResend(true);
+
+        toast.error(
+          error.response?.data?.message ||
+            "Please verify your email first."
+        );
+      } else {
+        toast.error(
+          error.response?.data?.message ||
+            "Login failed."
+        );
+      }
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const resendVerification = async () => {
+    if (!email) {
+      toast.error("Enter your email first.");
+      return;
+    }
+
+    try {
+      setResendLoading(true);
+
+      const response = await api.post(
+        "/api/auth/resend-verification",
+        {
+          email,
+        }
+      );
+
+      toast.success(response.data.message);
+
+      setShowResend(false);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          "Unable to resend verification email."
+      );
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
 
-      {/* Left panel */}
-      <div className="hidden lg:flex flex-col justify-center px-16 xl:px-24 relative overflow-hidden"
-           style={{ background: "linear-gradient(135deg,#ec4899 0%,#db2777 50%,#be185d 100%)" }}>
-        <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-white/10 pointer-events-none" />
-        <motion.div initial={{ opacity: 0, x: -32 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="relative z-10">
-          <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4">Connect2Creovox</h1>
-          <p className="text-white/80 text-lg mb-10 leading-relaxed">Creative-Tech Studio. Bold Branding. Robust Engineering.</p>
-          <ul className="space-y-3">
-            {["Branding & Visibility","Website Development","ERP / CRM Solutions","Digital Marketing","Advertising Campaigns"].map(item => (
-              <li key={item} className="flex items-center gap-3 text-white/90 text-sm">
-                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px]">✓</span>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-      </div>
+      {/* Left Section */}
 
-      {/* Right panel */}
-      <div className="flex items-center justify-center px-6 py-16 bg-white">
-        <motion.div initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="w-full max-w-md">
-          <h2 className="text-3xl font-extrabold text-ink mb-2">Welcome Back</h2>
-          <p className="text-ink-muted mb-10 text-sm">Sign in to continue your journey.</p>
+      <div
+        className="hidden lg:flex flex-col justify-center px-16 xl:px-24 relative overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(135deg,#ec4899 0%,#db2777 50%,#be185d 100%)",
+        }}
+      >
+        <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-white/10" />
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-ink mb-2">Email</label>
-              <div className="input-group">
-                <FaEnvelope className="input-group-icon text-sm" />
-                <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                  className="input input-icon" placeholder="you@example.com" />
-                  {errors.email&&(
+        <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-white/10" />
 
-                  <p className="text-red-500 text-xs mt-1">
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-5xl font-extrabold text-white mb-4">
+            Connect2Creovox
+          </h1>
 
-                  {errors.email}
-
-                  </p>
-
-                  )}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-ink mb-2">Password</label>
-              <div className="input-group">
-                <FaLock className="input-group-icon text-sm" />
-                <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
-                  className="input input-icon" placeholder="••••••••" />
-                  {errors.password&&(
-
-                  <p className="text-red-500 text-xs mt-1">
-
-                  {errors.password}
-
-                  </p>
-
-                  )}
-              </div>
-            </div>
-            <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center py-4 mt-2 text-base">
-              {loading ? "Signing In…" : <><span>Sign In</span> <FaArrowRight /></>}
-            </button>
-          </form>
-
-          <p className="text-center mt-8 text-sm text-ink-muted">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-brand-500 font-semibold hover:text-brand-600 transition-colors">Create Account</Link>
+          <p className="text-white/80 text-lg">
+            Creative-Tech Studio.
+            <br />
+            Bold Branding.
+            <br />
+            Robust Engineering.
           </p>
         </motion.div>
       </div>
+
+      {/* Right Section */}
+
+      <div className="flex items-center justify-center bg-white px-6 py-16">
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md"
+        >
+
+          <h2 className="text-3xl font-bold mb-2">
+            Welcome Back
+          </h2>
+
+          <p className="text-gray-500 mb-8">
+            Sign in to continue.
+          </p>
+
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5"
+          >
+
+            {/* Email */}
+
+            <div>
+
+              <label className="font-semibold text-sm">
+                Email
+              </label>
+
+              <div className="input-group">
+
+                <FaEnvelope className="input-group-icon" />
+
+                <input
+                  type="email"
+                  className="input input-icon"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) =>
+                    setEmail(e.target.value)
+                  }
+                />
+
+              </div>
+
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.email}
+                </p>
+              )}
+
+            </div>
+
+            {/* Password */}
+
+            <div>
+
+              <label className="font-semibold text-sm">
+                Password
+              </label>
+
+              <div className="input-group">
+
+                <FaLock className="input-group-icon" />
+
+                <input
+                  type="password"
+                  className="input input-icon"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
+                />
+
+              </div>
+
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.password}
+                </p>
+              )}
+
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary w-full justify-center py-4"
+            >
+              {loading ? (
+                "Signing In..."
+              ) : (
+                <>
+                  Sign In
+                  <FaArrowRight />
+                </>
+              )}
+            </button>
+
+            {showResend && (
+              <div className="text-center mt-4">
+
+                <p className="text-sm text-yellow-600 mb-3">
+                  Your email is not verified.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={resendVerification}
+                  className="text-pink-600 hover:text-pink-700 font-semibold"
+                >
+                  {resendLoading
+                    ? "Sending..."
+                    : "Resend Verification Email"}
+                </button>
+
+              </div>
+            )}
+
+          </form>
+
+          <p className="text-center mt-8 text-sm text-gray-500">
+
+            Don't have an account?{" "}
+
+            <Link
+              to="/register"
+              className="text-pink-600 font-semibold"
+            >
+              Create Account
+            </Link>
+
+          </p>
+
+        </motion.div>
+
+      </div>
+
     </div>
   );
 };
 
 export default Login;
+

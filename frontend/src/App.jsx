@@ -23,7 +23,7 @@ import AnimatedMascots from "./components/common/AnimatedMascots";
 import MascotSpeech from "./components/common/MascotSpeech";
 import AnimatedBackground from "./components/common/AnimatedBackground";
 import NotFound from "./pages/NotFound";
-
+import VerifyEmail from "./pages/VerifyEmail";
 
 
 
@@ -45,6 +45,13 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route
+
+                path="/verify-email/:token"
+
+                element={<VerifyEmail />}
+
+                />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/user-dashboard" element={<ProtectedRoute> <UserDashboard /></ProtectedRoute>
