@@ -1,7 +1,6 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
-const sendEmail = require("../utils/sendEmail");
+
 
 // ======================================
 // Generate JWT
@@ -40,6 +39,9 @@ const sanitize = (value) =>
         ? value.trim()
         : "";
 
+// ======================================
+// Register User
+// ======================================
 // ======================================
 // Register User
 // ======================================
@@ -173,108 +175,22 @@ exports.register = async (req, res) => {
         // Create User
         // -------------------------
 
-        const user = new User({
+        const user = await User.create({
 
             name,
             email,
             password,
             phone,
-            company,
-            isVerified: false
+            company
 
         });
 
         // -------------------------
-        // Verification Token
+        // Generate JWT
         // -------------------------
 
-        const verificationToken =
-            user.getVerificationToken();
-
-        await user.save();
-
-        // -------------------------
-        // Verification URL
-        // -------------------------
-
-        const verifyURL =
-
-            `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
-
-        // -------------------------
-        // Email Template
-        // -------------------------
-
-        const html = `
-
-        <div style="font-family:Arial;padding:30px">
-
-            <h2>Welcome to Connect2Creovox 🎉</h2>
-
-            <p>Hello ${user.name},</p>
-
-            <p>
-
-                Thank you for registering.
-
-                Please verify your email by clicking
-                the button below.
-
-            </p>
-
-            <a
-
-                href="${verifyURL}"
-
-                style="
-
-                background:#db2777;
-                color:white;
-                padding:14px 30px;
-                text-decoration:none;
-                border-radius:8px;
-                display:inline-block;
-                margin-top:20px;
-
-                "
-
-            >
-
-                Verify My Email
-
-            </a>
-
-            <p style="margin-top:25px">
-
-                This verification link expires
-                in 24 hours.
-
-            </p>
-
-            <p>
-
-                Connect2Creovox Team
-
-            </p>
-
-        </div>
-
-        `;
-
-        // -------------------------
-        // Send Email
-        // -------------------------
-
-        await sendEmail({
-
-            email: user.email,
-
-            subject:
-                "Verify your Connect2Creovox Account",
-
-            html
-
-        });
+        const token =
+            generateToken(user._id);
 
         // -------------------------
         // Success
@@ -285,8 +201,25 @@ exports.register = async (req, res) => {
             success: true,
 
             message:
+                "Registration successful.",
 
-                "Registration successful. Please verify your email before logging in."
+            token,
+
+            user: {
+
+                id: user._id,
+
+                name: user.name,
+
+                email: user.email,
+
+                role: user.role,
+
+                phone: user.phone,
+
+                company: user.company
+
+            }
 
         });
 
@@ -308,6 +241,7 @@ exports.register = async (req, res) => {
     }
 
 };
+
 // ================================
 // Login User
 // POST /api/auth/login
@@ -316,6 +250,10 @@ exports.register = async (req, res) => {
 // ======================================
 // Login User
 // POST /api/auth/login
+// ======================================
+
+// ======================================
+// Login User
 // ======================================
 
 exports.login = async (req, res) => {
@@ -370,12 +308,9 @@ exports.login = async (req, res) => {
         // Find User
         // -------------------------
 
-        const user =
-            await User.findOne({
-
-                email
-
-            }).select("+password");
+        const user = await User
+            .findOne({ email })
+            .select("+password");
 
         if (!user) {
 
@@ -391,30 +326,13 @@ exports.login = async (req, res) => {
         }
 
         // -------------------------
-        // Email Verification Check
+        // Compare Password
         // -------------------------
 
-        if (!user.isVerified) {
-
-            return res.status(403).json({
-
-                success: false,
-
-                message:
-                    "Please verify your email before logging in."
-
-            });
-
-        }
-
-        // -------------------------
-        // Password Check
-        // -------------------------
-
-        const isMatch =
+        const isPasswordMatch =
             await user.comparePassword(password);
 
-        if (!isMatch) {
+        if (!isPasswordMatch) {
 
             return res.status(401).json({
 
@@ -428,11 +346,15 @@ exports.login = async (req, res) => {
         }
 
         // -------------------------
-        // Generate Token
+        // Generate JWT
         // -------------------------
 
         const token =
             generateToken(user._id);
+
+        // -------------------------
+        // Success
+        // -------------------------
 
         return res.status(200).json({
 
@@ -455,9 +377,7 @@ exports.login = async (req, res) => {
 
                 phone: user.phone,
 
-                company: user.company,
-
-                isVerified: user.isVerified
+                company: user.company
 
             }
 
@@ -467,17 +387,14 @@ exports.login = async (req, res) => {
 
     catch (error) {
 
-        console.error(
-            "Login Error:",
-            error
-        );
+        console.log(error);
 
         return res.status(500).json({
 
             success: false,
 
             message:
-                "Internal server error."
+                error.message
 
         });
 
@@ -489,75 +406,7 @@ exports.login = async (req, res) => {
 // GET /api/auth/verify-email/:token
 // ======================================
 
-exports.verifyEmail = async (req, res) => {
 
-    try {
-
-        const hashedToken = crypto
-            .createHash("sha256")
-            .update(req.params.token)
-            .digest("hex");
-
-        const user = await User.findOne({
-
-            verificationToken: hashedToken,
-
-            verificationTokenExpire: {
-
-                $gt: Date.now()
-
-            }
-
-        });
-
-        if (!user) {
-
-            return res.status(400).json({
-
-                success: false,
-
-                message:
-                    "Verification link is invalid or has expired."
-
-            });
-
-        }
-
-        user.isVerified = true;
-
-        user.verificationToken = undefined;
-
-        user.verificationTokenExpire = undefined;
-
-        await user.save();
-
-        return res.status(200).json({
-
-            success: true,
-
-            message:
-                "Email verified successfully. You can now login."
-
-        });
-
-    }
-
-    catch (error) {
-
-        console.log(error);
-
-        return res.status(500).json({
-
-            success: false,
-
-            message:
-                "Internal server error."
-
-        });
-
-    }
-
-};
 
 
 // ======================================
@@ -565,150 +414,7 @@ exports.verifyEmail = async (req, res) => {
 // POST /api/auth/resend-verification
 // ======================================
 
-exports.resendVerification = async (req, res) => {
 
-    try {
-
-        let { email } = req.body;
-
-        email = sanitize(email).toLowerCase();
-
-        if (!emailRegex.test(email)) {
-
-            return res.status(400).json({
-
-                success: false,
-
-                message:
-                    "Please enter a valid email."
-
-            });
-
-        }
-
-        const user = await User.findOne({
-
-            email
-
-        });
-
-        if (!user) {
-
-            return res.status(404).json({
-
-                success: false,
-
-                message:
-                    "User not found."
-
-            });
-
-        }
-
-        if (user.isVerified) {
-
-            return res.status(400).json({
-
-                success: false,
-
-                message:
-                    "This email is already verified."
-
-            });
-
-        }
-
-        const verificationToken =
-            user.getVerificationToken();
-
-        await user.save();
-
-        const verifyURL =
-
-            `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
-
-        const html = `
-
-        <div style="font-family:Arial;padding:30px">
-
-            <h2>Verify your Connect2Creovox Account</h2>
-
-            <p>Hello ${user.name},</p>
-
-            <p>
-
-                Click below to verify your email.
-
-            </p>
-
-            <a
-
-                href="${verifyURL}"
-
-                style="
-
-                    background:#db2777;
-
-                    color:white;
-
-                    padding:14px 30px;
-
-                    border-radius:8px;
-
-                    text-decoration:none;
-
-                    display:inline-block;
-
-                "
-
-            >
-
-                Verify Email
-
-            </a>
-
-        </div>
-
-        `;
-
-        await sendEmail({
-
-            email: user.email,
-
-            subject:
-                "Verify your Connect2Creovox Account",
-
-            html
-
-        });
-
-        return res.status(200).json({
-
-            success: true,
-
-            message:
-                "Verification email sent successfully."
-
-        });
-
-    }
-
-    catch (error) {
-
-        console.log(error);
-
-        return res.status(500).json({
-
-            success: false,
-
-            message:
-                "Internal server error."
-
-        });
-
-    }
-
-};
 
 // ================================
 // Get Current User
