@@ -8,139 +8,108 @@ import { FaArrowRight, FaUpload } from "react-icons/fa";
 const BookService = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ serviceName: id, companyName:"", clientName:"", email:"", phone:"", budget:"", description:"" });
+
+  const [formData, setFormData] = useState({
+    serviceName: id,
+    companyName: "",
+    clientName: "",
+    email: "",
+    phone: "",
+    budget: "",
+    description: "",
+  });
+
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleImageChange = (e) => {
+    const selectedFiles = [...e.target.files];
 
-  const selectedFiles = [...e.target.files];
-
-  if (selectedFiles.length > 5) {
-
-    toast.error("You can upload a maximum of 5 images.");
-
-    return;
-
-  }
-
-  for (const file of selectedFiles) {
-
-    if (file.size > 5 * 1024 * 1024) {
-
-      toast.error(`${file.name} exceeds the 5 MB limit.`);
-
+    if (selectedFiles.length > 5) {
+      toast.error("You can upload a maximum of 5 images.");
       return;
-
     }
 
-  }
+    for (const file of selectedFiles) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} exceeds the 5 MB limit.`);
+        return;
+      }
+    }
 
-  setImages(selectedFiles);
-
-};
+    setImages(selectedFiles);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-      const phoneRegex=/^[6-9]\d{9}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[6-9]\d{9}$/;
 
-      if(formData.clientName.trim().length<3){
-
-      toast.error("Invalid client name");
-
+    if (formData.clientName.trim().length < 3) {
+      toast.error("Please enter a valid client name.");
       return;
+    }
 
-      }
-
-      if(!emailRegex.test(formData.email)){
-
-      toast.error("Invalid email");
-
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Please enter a valid email address.");
       return;
+    }
 
-      }
-
-      if(!phoneRegex.test(formData.phone)){
-
-      toast.error("Invalid phone");
-
+    if (!phoneRegex.test(formData.phone)) {
+      toast.error("Please enter a valid 10-digit mobile number.");
       return;
+    }
 
-      }
-
-      if(formData.description.trim().length<10){
-
-      toast.error("Description should be at least 10 characters");
-
+    if (!formData.budget) {
+      toast.error("Please select a budget.");
       return;
+    }
 
-      }
-
-      if(!formData.budget){
-
-      toast.error("Please select budget");
-
+    if (formData.description.trim().length < 10) {
+      toast.error("Description should contain at least 10 characters.");
       return;
+    }
 
-      }
-      const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      const phoneRegex=/^[6-9]\d{9}$/;
-
-      if(formData.clientName.trim().length<3){
-
-      toast.error("Invalid client name");
-
-      return;
-
-      }
-
-      if(!emailRegex.test(formData.email)){
-
-      toast.error("Invalid email");
-
-      return;
-
-      }
-
-      if(!phoneRegex.test(formData.phone)){
-
-      toast.error("Invalid phone");
-
-      return;
-
-      }
-
-      if(formData.description.trim().length<10){
-
-      toast.error("Description should be at least 10 characters");
-
-      return;
-
-      }
-
-      if(!formData.budget){
-
-      toast.error("Please select budget");
-
-      return;
-
-      }
     setLoading(true);
+
     try {
       const token = localStorage.getItem("token");
+
       const data = new FormData();
-      Object.keys(formData).forEach(k => data.append(k, formData[k]));
-      images.forEach(img => data.append("images", img));
-      await api.post("/api/bookings/create", data, { headers: { Authorization: `Bearer ${token}` } });
+
+      Object.keys(formData).forEach((key) => {
+        data.append(key, formData[key]);
+      });
+
+      images.forEach((img) => {
+        data.append("images", img);
+      });
+
+      await api.post("/api/bookings/create", data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       toast.success("Service request submitted successfully!");
+
       navigate("/user-dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Booking failed. Please try again.");
-    } finally { setLoading(false); }
+      toast.error(
+        err.response?.data?.message ||
+        "Booking failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputCls = "input";
