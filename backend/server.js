@@ -19,7 +19,7 @@ const notificationRoutes =require("./src/routes/notificationRoutes");
 const errorHandler =require("./src/middleware/errorHandler");
 
 
-const app = express();
+
 // Security Headers
 app.use(helmet());
 
