@@ -76,92 +76,107 @@ export const AuthProvider = ({ children }) => {
   // Login
   // ============================
 
-  const login = async (email, password) => {
+// ============================
+// Login
+// ============================
 
-    try {
+const login = async (email, password) => {
 
-      const response = await api.post("/api/auth/login", {
+  try {
 
-        email: email.trim(),
+    const response = await api.post("/api/auth/login", {
 
-        password
+      email: email.trim(),
 
-      });
+      password
 
-      const { token, user } = response.data;
+    });
 
-      localStorage.setItem("token", token);
+    const { token, user } = response.data;
 
-      setUser(user);
+    localStorage.setItem("token", token);
 
-      toast.success("Login Successful");
+    setUser(user);
 
-      return true;
+    toast.success("Login Successful");
 
-    }
+    return true;
 
-    catch (error) {
-      throw error;
+  }
 
-    }
+  catch (error) {
 
-  };
+    toast.error(
+
+      error.response?.data?.message ||
+
+      "Login Failed"
+
+    );
+
+    return false;
+
+  }
+
+};
 
   // ============================
   // Register
   // ============================
 
-  const register = async (userData) => {
+ // ============================
+// Register
+// ============================
 
-    try {
+const register = async (userData) => {
 
-      const response = await api.post(
+  try {
 
-        "/api/auth/register",
+    const response = await api.post(
 
-        {
+      "/api/auth/register",
 
-          ...userData,
+      {
 
-          name: userData.name.trim(),
+        ...userData,
 
-          email: userData.email.trim().toLowerCase(),
+        name: userData.name.trim(),
 
-          phone: userData.phone?.trim() || ""
+        email: userData.email.trim().toLowerCase(),
 
-        }
+        phone: userData.phone?.trim() || ""
 
-      );
+      }
 
-      const { token, user } = response.data;
+    );
 
-      localStorage.setItem("token", token);
+    const { token, user } = response.data;
 
-      setUser(user);
+    localStorage.setItem("token", token);
 
-      toast.success("Registration Successful");
+    setUser(user);
 
-      return true;
+    toast.success("Registration Successful");
 
-    }
+    return true;
 
-    catch (error) {
+  }
 
-      console.error(error);
+  catch (error) {
 
-      toast.error(
+    toast.error(
 
-        error.response?.data?.message ||
+      error.response?.data?.message ||
 
-        "Registration Failed"
+      "Registration Failed"
 
-      );
+    );
 
-      return false;
+    return false;
 
-    }
+  }
 
-  };
+};
 
   // ============================
   // Logout
