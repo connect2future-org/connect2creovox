@@ -1,167 +1,309 @@
+const fs = require("fs");
+const path = require("path");
+
 const Booking = require("../models/Booking");
-const Notification =
-require("../models/Notification");
+const Notification = require("../models/Notification");
 
+// =======================================================
+// Helpers
+// =======================================================
 
-/*
-====================================
-CREATE BOOKING
-====================================
-*/
-exports.createBooking = async (req, res) => {
+const sanitize = (value) => {
+  if (typeof value !== "string") return "";
+  return value.trim();
+};
+
+const emailRegex =
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const phoneRegex =
+  /^[6-9]\d{9}$/;
+
+const createNotification = async (
+  user,
+  title,
+  message
+) => {
+
   try {
-
-    const sanitize = (value) =>
-      typeof value === "string"
-        ? value.trim()
-        : "";
-
-    const emailRegex =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    const phoneRegex =
-      /^[6-9]\d{9}$/;
-
-    const referenceImages =
-      req.files?.map(file => file.filename) || [];
-
-    const serviceName = sanitize(req.body.serviceName);
-    const companyName = sanitize(req.body.companyName);
-    const clientName = sanitize(req.body.clientName);
-    const email = sanitize(req.body.email).toLowerCase();
-    const phone = sanitize(req.body.phone);
-    const budget = sanitize(req.body.budget);
-    const description = sanitize(req.body.description);
-
-    // Required Fields
-
-    if (
-      !serviceName ||
-      !clientName ||
-      !email ||
-      !phone ||
-      !description
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Please fill all required fields."
-      });
-    }
-
-    // Email Validation
-
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Please enter a valid email address."
-      });
-    }
-
-    // Phone Validation
-
-    if (!phoneRegex.test(phone)) {
-      return res.status(400).json({
-        success: false,
-        message: "Please enter a valid 10-digit mobile number."
-      });
-    }
-
-    // Description Validation
-
-    if (description.length < 10) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Description should contain at least 10 characters."
-      });
-    }
-
-    if (description.length > 2000) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Description is too long."
-      });
-    }
-
-    // Name Validation
-
-    if (clientName.length < 3) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Client name must contain at least 3 characters."
-      });
-    }
-
-    if (companyName.length > 100) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Company name is too long."
-      });
-    }
-
-    const booking = await Booking.create({
-
-      user: req.user.id,
-
-      serviceName,
-
-      companyName,
-
-      clientName,
-
-      email,
-
-      phone,
-
-      budget,
-
-      description,
-
-      referenceImages
-
-    });
-
-    // Notification for user
 
     await Notification.create({
 
-      user: req.user.id,
+      user,
 
-      title: "Booking Submitted",
+      title,
 
-      message:
-        `Your booking for "${serviceName}" has been submitted successfully.`
+      message
 
     });
+
+  }
+
+  catch (err) {
+
+    console.error(
+      "Notification Error:",
+      err.message
+    );
+
+  }
+
+};
+
+// =======================================================
+// CREATE BOOKING
+// =======================================================
+
+exports.createBooking = async (req, res) => {
+
+  try {
+
+    console.log("========== BOOKING REQUEST ==========");
+    console.log("BODY:", req.body);
+    console.log("FILES:", req.files);
+    console.log("=====================================");
+
+    const serviceName =
+      sanitize(req.body.serviceName);
+
+    const companyName =
+      sanitize(req.body.companyName);
+
+    const clientName =
+      sanitize(req.body.clientName);
+
+    const email =
+      sanitize(req.body.email).toLowerCase();
+
+    const phone =
+      sanitize(req.body.phone);
+
+    const budget =
+      sanitize(req.body.budget);
+
+    const description =
+      sanitize(req.body.description);
+
+    // =====================================
+    // Uploaded Reference Images
+    // =====================================
+
+    const referenceImages =
+      req.files
+        ? req.files.map(file => file.filename)
+        : [];
+
+    // =====================================
+    // Required Fields
+    // =====================================
+
+    if (
+
+      !serviceName ||
+
+      !clientName ||
+
+      !email ||
+
+      !phone ||
+
+      !description
+
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Please fill all required fields."
+
+      });
+
+    }
+
+    // =====================================
+    // Email Validation
+    // =====================================
+
+    if (!emailRegex.test(email)) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Please enter a valid email."
+
+      });
+
+    }
+
+    // =====================================
+    // Phone Validation
+    // =====================================
+
+    if (!phoneRegex.test(phone)) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Please enter a valid mobile number."
+
+      });
+
+    }
+
+    // =====================================
+    // Client Name Validation
+    // =====================================
+
+    if (
+
+      clientName.length < 3 ||
+
+      clientName.length > 60
+
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Client name must contain between 3 and 60 characters."
+
+      });
+
+    }
+
+    // =====================================
+    // Company Name Validation
+    // =====================================
+
+    if (
+
+      companyName.length > 100
+
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Company name is too long."
+
+      });
+
+    }
+
+    // =====================================
+    // Description Validation
+    // =====================================
+
+    if (
+
+      description.length < 10
+
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Description should contain at least 10 characters."
+
+      });
+
+    }
+
+    if (
+
+      description.length > 3000
+
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Description is too long."
+
+      });
+
+    }
+
+    // =====================================
+    // Create Booking
+    // =====================================
+
+    const booking =
+      await Booking.create({
+
+        user: req.user._id,
+
+        serviceName,
+
+        companyName,
+
+        clientName,
+
+        email,
+
+        phone,
+
+        budget,
+
+        description,
+
+        referenceImages,
+
+        status: "Pending",
+
+        adminNotes: "",
+
+        projectFiles: []
+
+      });
+
+    // =====================================
+    // Create Notification
+    // =====================================
+
+    await createNotification(
+
+      booking.user,
+
+      "Booking Submitted",
+
+      `Your booking request for "${serviceName}" has been submitted successfully.`
+
+    );
 
     return res.status(201).json({
 
       success: true,
 
       message:
-        "Booking created successfully.",
+        "Booking submitted successfully.",
 
       booking
 
     });
 
-  } catch (error) {
+  }
 
-    console.error("Booking Error:", error);
+  catch (error) {
 
-    if (error.name === "ValidationError") {
-
-      return res.status(400).json({
-        success: false,
-        message: Object.values(error.errors)
-          .map(err => err.message)
-          .join(", ")
-      });
-
-    }
+    console.error(
+      "Create Booking Error:",
+      error
+    );
 
     return res.status(500).json({
 
@@ -175,211 +317,475 @@ exports.createBooking = async (req, res) => {
   }
 
 };
-
-
-/*
-====================================
-USER BOOKINGS
-====================================
-*/
+// =======================================================
+// GET MY BOOKINGS
+// =======================================================
 
 exports.getMyBookings = async (req, res) => {
 
   try {
 
     const bookings = await Booking.find({
-      user: req.user.id
-    }).sort({ createdAt: -1 });
 
-    res.status(200).json({
+      user: req.user._id
+
+    })
+
+      .sort({
+
+        createdAt: -1
+
+      })
+
+      .select("-__v");
+
+    return res.status(200).json({
+
       success: true,
+
       count: bookings.length,
+
       bookings
+
     });
 
-  } catch (error) {
+  }
 
-    res.status(500).json({
+  catch (error) {
+
+    console.error(
+
+      "Get My Bookings Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
       success: false,
-      message: error.message
+
+      message: "Unable to fetch your bookings."
+
     });
 
   }
 
 };
 
-
-/*
-====================================
-ADMIN - ALL BOOKINGS
-====================================
-*/
+// =======================================================
+// GET ALL BOOKINGS (ADMIN)
+// =======================================================
 
 exports.getAllBookings = async (req, res) => {
 
   try {
 
     const bookings = await Booking.find()
-      .populate("user", "name email")
-      .sort({ createdAt: -1 });
 
-    res.status(200).json({
+      .populate({
+
+        path: "user",
+
+        select: "name email role"
+
+      })
+
+      .sort({
+
+        createdAt: -1
+
+      });
+
+    return res.status(200).json({
+
       success: true,
+
       count: bookings.length,
+
       bookings
+
     });
 
-  } catch (error) {
+  }
 
-    res.status(500).json({
+  catch (error) {
+
+    console.error(
+
+      "Get All Bookings Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
       success: false,
-      message: error.message
+
+      message: "Unable to fetch bookings."
+
     });
 
   }
 
 };
 
-
-/*
-====================================
-ADMIN - SINGLE BOOKING
-====================================
-*/
+// =======================================================
+// GET SINGLE BOOKING
+// =======================================================
 
 exports.getBookingById = async (req, res) => {
 
   try {
 
-    const booking = await Booking.findById(req.params.id)
-      .populate("user", "name email");
+    const booking = await Booking.findById(
+
+      req.params.id
+
+    )
+
+      .populate({
+
+        path: "user",
+
+        select: "name email role"
+
+      });
 
     if (!booking) {
+
       return res.status(404).json({
+
         success: false,
-        message: "Booking not found"
+
+        message: "Booking not found."
+
       });
+
     }
 
-    res.status(200).json({
+    return res.status(200).json({
+
       success: true,
+
       booking
+
     });
 
-  } catch (error) {
+  }
 
-    res.status(500).json({
+  catch (error) {
+
+    console.error(
+
+      "Get Booking Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
       success: false,
-      message: error.message
+
+      message: "Unable to fetch booking."
+
     });
 
   }
 
 };
-
-
-/*
-====================================
-ADMIN - UPDATE STATUS
-====================================
-*/
+// =======================================================
+// UPDATE BOOKING STATUS (ADMIN)
+// =======================================================
 
 exports.updateStatus = async (req, res) => {
 
   try {
 
-    const booking = await Booking.findById(req.params.id);
+    const booking = await Booking.findById(
+      req.params.id
+    );
 
     if (!booking) {
+
       return res.status(404).json({
+
         success: false,
-        message: "Booking not found"
+
+        message: "Booking not found."
+
       });
+
     }
 
-    booking.status =
-      req.body.status || booking.status;
+    const allowedStatus = [
 
-    booking.adminNotes =
-      req.body.adminNotes || booking.adminNotes;
+      "Pending",
+
+      "Reviewing",
+
+      "Proposal Sent",
+
+      "In Progress",
+
+      "Completed",
+
+      "Rejected"
+
+    ];
+
+    const status =
+      sanitize(req.body.status);
+
+    if (!allowedStatus.includes(status)) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid project status."
+
+      });
+
+    }
+
+    booking.status = status;
 
     await booking.save();
-    await Notification.create({
 
-user: booking.user,
+    // ===============================
+    // Notify User
+    // ===============================
 
-title: "Project Update",
+    await createNotification(
 
-message:
-`Your ${booking.serviceName}
-project is now ${booking.status}`
+      booking.user,
 
-});
+      "Project Status Updated",
 
-    res.status(200).json({
+      `Your "${booking.serviceName}" request is now "${status}".`
+
+    );
+
+    return res.status(200).json({
+
       success: true,
-      message: "Booking updated successfully",
+
+      message:
+        "Project status updated successfully.",
+
       booking
+
     });
 
-  } catch (error) {
+  }
 
-    res.status(500).json({
+  catch (error) {
+
+    console.error(
+
+      "Update Status Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
       success: false,
-      message: error.message
+
+      message:
+        "Unable to update booking status."
+
     });
 
   }
 
 };
 
-
-/*
-====================================
-ADMIN - UPDATE NOTES
-====================================
-*/
+// =======================================================
+// UPDATE ADMIN NOTES
+// =======================================================
 
 exports.updateAdminNotes = async (req, res) => {
 
   try {
 
-    const booking =
-      await Booking.findById(req.params.id);
+    const booking = await Booking.findById(
+      req.params.id
+    );
 
     if (!booking) {
 
       return res.status(404).json({
+
         success: false,
-        message: "Booking not found"
+
+        message:
+          "Booking not found."
+
       });
 
     }
 
-    booking.adminNotes =
-      req.body.adminNotes;
+    const notes =
+      sanitize(req.body.adminNotes);
+
+    booking.adminNotes = notes;
 
     await booking.save();
 
-    res.status(200).json({
+    // ===============================
+    // Notify User
+    // ===============================
+
+    if (notes.length > 0) {
+
+      await createNotification(
+
+        booking.user,
+
+        "Admin Updated Your Project",
+
+        `New project notes have been added for "${booking.serviceName}".`
+
+      );
+
+    }
+
+    return res.status(200).json({
 
       success: true,
 
       message:
-        "Admin notes updated",
+        "Admin notes updated successfully.",
 
       booking
 
     });
 
-  } catch (error) {
+  }
 
-    res.status(500).json({
+  catch (error) {
+
+    console.error(
+
+      "Update Notes Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
 
       success: false,
 
       message:
-        error.message
+        "Unable to update admin notes."
+
+    });
+
+  }
+
+};
+// =======================================================
+// UPLOAD PROJECT FILE (ADMIN)
+// =======================================================
+
+exports.uploadProjectFile = async (req, res) => {
+
+  try {
+      console.log("========== ADMIN FILE UPLOAD ==========");
+      console.log("Booking ID:", req.params.id);
+      console.log("BODY:", req.body);
+      console.log("FILE:", req.file);
+      console.log("======================================");
+
+
+      
+    const booking = await Booking.findById(
+      req.params.id
+    );
+
+    if (!booking) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message: "Booking not found."
+
+      });
+
+    }
+
+    if (!req.file) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message: "Please select a file to upload."
+
+      });
+
+    }
+
+    booking.projectFiles.push({
+
+      fileName: req.file.originalname,
+
+      filePath: req.file.filename,
+
+      fileSize: req.file.size,
+
+      mimeType: req.file.mimetype,
+
+      uploadedAt: new Date()
+
+    });
+
+    await booking.save();
+
+    await createNotification(
+
+      booking.user,
+
+      "Project Deliverable Uploaded",
+
+      `A new project file has been uploaded for "${booking.serviceName}".`
+
+    );
+
+    return res.status(200).json({
+
+      success: true,
+
+      message: "Project file uploaded successfully.",
+
+      booking
+
+    });
+
+  }
+
+  catch (error) {
+
+    console.error(
+
+      "Upload Project File Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
+      success: false,
+
+      message: "Unable to upload project file."
 
     });
 
@@ -387,106 +793,421 @@ exports.updateAdminNotes = async (req, res) => {
 
 };
 
-
-/*
-====================================
-DELETE BOOKING
-====================================
-*/
+// =======================================================
+// DELETE BOOKING
+// =======================================================
 
 exports.deleteBooking = async (req, res) => {
 
   try {
 
-    const booking =
-      await Booking.findById(req.params.id);
+    const booking = await Booking.findById(
+      req.params.id
+    );
 
     if (!booking) {
+
       return res.status(404).json({
+
         success: false,
-        message: "Booking not found"
+
+        message: "Booking not found."
+
       });
+
+    }
+
+    // ---------------------------------
+    // Delete Reference Images
+    // ---------------------------------
+
+    if (
+
+      booking.referenceImages?.length
+
+    ) {
+
+      booking.referenceImages.forEach((img) => {
+
+        const imagePath = path.join(
+
+          __dirname,
+
+          "../../uploads",
+
+          img
+
+        );
+
+        if (
+
+          fs.existsSync(imagePath)
+
+        ) {
+
+          fs.unlinkSync(imagePath);
+
+        }
+
+      });
+
+    }
+
+    // ---------------------------------
+    // Delete Project Files
+    // ---------------------------------
+
+    if (
+
+      booking.projectFiles?.length
+
+    ) {
+
+      booking.projectFiles.forEach((file) => {
+
+        const filePath = path.join(
+
+          __dirname,
+
+          "../../uploads/project-files",
+
+          file.filePath
+
+        );
+
+        if (
+
+          fs.existsSync(filePath)
+
+        ) {
+
+          fs.unlinkSync(filePath);
+
+        }
+
+      });
+
     }
 
     await booking.deleteOne();
 
-    res.status(200).json({
+    await createNotification(
+
+      booking.user,
+
+      "Booking Removed",
+
+      `Your booking for "${booking.serviceName}" has been removed.`
+
+    );
+
+    return res.status(200).json({
+
       success: true,
-      message: "Booking deleted successfully"
+
+      message: "Booking deleted successfully."
+
     });
 
-  } catch (error) {
+  }
 
-    res.status(500).json({
+  catch (error) {
+
+    console.error(
+
+      "Delete Booking Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
       success: false,
-      message: error.message
+
+      message: "Unable to delete booking."
+
+    });
+
+  }
+
+};
+// =======================================================
+// DELETE PROJECT FILE
+// =======================================================
+
+exports.deleteProjectFile = async (req, res) => {
+
+  try {
+
+    const { bookingId, fileId } = req.params;
+
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message: "Booking not found."
+
+      });
+
+    }
+
+    const file = booking.projectFiles.id(fileId);
+
+    if (!file) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message: "File not found."
+
+      });
+
+    }
+
+    const fileLocation = path.join(
+
+      __dirname,
+
+      "../../uploads/project-files",
+
+      file.filePath
+
+    );
+
+    if (fs.existsSync(fileLocation)) {
+
+      fs.unlinkSync(fileLocation);
+
+    }
+
+    file.deleteOne();
+
+    await booking.save();
+
+    await createNotification(
+
+      booking.user,
+
+      "Project File Removed",
+
+      `A project file for "${booking.serviceName}" has been removed.`
+
+    );
+
+    return res.status(200).json({
+
+      success: true,
+
+      message: "Project file deleted successfully.",
+
+      booking
+
+    });
+
+  }
+
+  catch (error) {
+
+    console.error(
+
+      "Delete Project File Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
+      success: false,
+
+      message: "Unable to delete project file."
+
     });
 
   }
 
 };
 
+// =======================================================
+// DOWNLOAD PROJECT FILE
+// =======================================================
 
+exports.downloadProjectFile = async (req, res) => {
 
-/*
-====================================
-UPLOAD PROJECT FILE
-====================================
-*/
+  try {
 
-exports.uploadProjectFile =
-async(req,res)=>{
+    const { bookingId, fileId } = req.params;
 
-try{
+    const booking = await Booking.findById(bookingId);
 
-const booking =
-await Booking.findById(
-req.params.id
-);
+    if (!booking) {
 
-if(!booking){
+      return res.status(404).json({
 
-return res.status(404).json({
-success:false,
-message:"Booking not found"
-});
+        success: false,
 
-}
+        message: "Booking not found."
 
-booking.projectFiles.push({
+      });
 
-fileName:
-req.file.originalname,
+    }
 
-filePath:
-req.file.filename
+    const file = booking.projectFiles.id(fileId);
 
-});
+    if (!file) {
 
-await booking.save();
+      return res.status(404).json({
 
-res.status(200).json({
+        success: false,
 
-success:true,
+        message: "File not found."
 
-message:
-"File uploaded",
+      });
 
-booking
+    }
 
-});
+    const fileLocation = path.join(
 
-}
-catch(error){
+      __dirname,
 
-res.status(500).json({
+      "../../uploads/project-files",
 
-success:false,
+      file.filePath
 
-message:error.message
+    );
 
-});
+    if (!fs.existsSync(fileLocation)) {
 
-}
+      return res.status(404).json({
+
+        success: false,
+
+        message: "Physical file not found."
+
+      });
+
+    }
+
+    return res.download(
+
+      fileLocation,
+
+      file.fileName
+
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+
+      "Download File Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
+      success: false,
+
+      message: "Unable to download file."
+
+    });
+
+  }
+
+};
+
+// =======================================================
+// VIEW PROJECT FILE
+// =======================================================
+
+exports.viewProjectFile = async (req, res) => {
+
+  try {
+
+    const { bookingId, fileId } = req.params;
+
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message: "Booking not found."
+
+      });
+
+    }
+
+    const file = booking.projectFiles.id(fileId);
+
+    if (!file) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message: "File not found."
+
+      });
+
+    }
+
+    const fileLocation = path.join(
+
+      __dirname,
+
+      "../../uploads/project-files",
+
+      file.filePath
+
+    );
+
+    if (!fs.existsSync(fileLocation)) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message: "Physical file not found."
+
+      });
+
+    }
+
+    return res.sendFile(fileLocation);
+
+  }
+
+  catch (error) {
+
+    console.error(
+
+      "View File Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
+      success: false,
+
+      message: "Unable to open file."
+
+    });
+
+  }
 
 };

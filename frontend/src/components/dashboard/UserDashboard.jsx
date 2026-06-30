@@ -4,8 +4,21 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import api from "../../utils/api";
 import {
-  FaUser, FaProjectDiagram, FaClipboardList, FaCheckCircle,
-  FaDownload, FaArrowRight, FaClock,
+  FaUser,
+  FaProjectDiagram,
+  FaClipboardList,
+  FaCheckCircle,
+  FaDownload,
+  FaArrowRight,
+  FaClock,
+  FaEye,
+  FaFileAlt,
+  FaFilePdf,
+  FaFileWord,
+  FaFileExcel,
+  FaFilePowerpoint,
+  FaFileImage,
+  FaFileArchive
 } from "react-icons/fa";
 
 const statusBadge = (status) => {
@@ -19,6 +32,9 @@ const statusBadge = (status) => {
   };
   return m[status] || "badge-gray";
 };
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000";
 
 const UserDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -31,6 +47,114 @@ const UserDashboard = () => {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+ // ===============================
+// File Helpers
+// ===============================
+
+const getExtension = (fileName="") =>
+fileName.split(".").pop().toLowerCase();
+
+const getFileIcon = (fileName="") => {
+
+const ext = getExtension(fileName);
+
+switch(ext){
+
+case "pdf":
+return <FaFilePdf className="text-red-500"/>;
+
+case "doc":
+case "docx":
+return <FaFileWord className="text-blue-600"/>;
+
+case "xls":
+case "xlsx":
+return <FaFileExcel className="text-green-600"/>;
+
+case "ppt":
+case "pptx":
+return <FaFilePowerpoint className="text-orange-500"/>;
+
+case "jpg":
+case "jpeg":
+case "png":
+case "gif":
+case "webp":
+return <FaFileImage className="text-pink-500"/>;
+
+case "zip":
+case "rar":
+return <FaFileArchive className="text-yellow-600"/>;
+
+default:
+return <FaFileAlt className="text-gray-500"/>;
+
+}
+
+};
+
+const viewFile=(file)=>{
+
+window.open(
+
+`${BASE_URL}/uploads/project-files/${file.filePath}`,
+
+"_blank"
+
+);
+
+};
+// ===============================
+// Can Preview File?
+// ===============================
+
+const canPreview = (fileName = "") => {
+
+  const ext = fileName
+    .split(".")
+    .pop()
+    .toLowerCase();
+
+  return [
+
+    "pdf",
+
+    "jpg",
+
+    "jpeg",
+
+    "png",
+
+    "gif",
+
+    "webp",
+
+    "txt"
+
+  ].includes(ext);
+
+};
+
+
+const downloadFile=(file)=>{
+
+const link=document.createElement("a");
+
+link.href=
+
+`${BASE_URL}/uploads/project-files/${file.filePath}`;
+
+link.download=file.fileName;
+
+document.body.appendChild(link);
+
+link.click();
+
+document.body.removeChild(link);
+
+};
+
+
 
   const stats = [
     { icon: <FaClipboardList />,  label: "Total Requests",   value: bookings.length,                                                              color: "from-brand-500 to-pink-400" },
@@ -103,18 +227,127 @@ const UserDashboard = () => {
                       <p className="text-ink-muted text-sm">{b.adminNotes}</p>
                     </div>
                   )}
+                  {
+  b.referenceImages?.length > 0 && (
 
-                  {b.projectFiles?.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      {b.projectFiles.map((f, i) => (
-                        <a key={i} href={`http://localhost:5000/uploads/project-files/${f.filePath}`}
-                           target="_blank" rel="noreferrer"
-                           className="inline-flex items-center gap-2 text-brand-500 hover:text-brand-600 text-sm font-medium transition-colors">
-                          <FaDownload className="text-xs" /> {f.fileName}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+    <div className="mt-6">
+
+      <h4 className="font-semibold mb-3">
+        Reference Images
+      </h4>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+        {b.referenceImages.map((img, index) => (
+
+          <img
+            key={index}
+            src={`${BASE_URL}/uploads/${img}`}
+            alt="Reference"
+            className="rounded-xl border h-32 w-full object-cover cursor-pointer hover:scale-105 transition"
+            onClick={() =>
+              window.open(
+                `${BASE_URL}/uploads/${img}`,
+                "_blank"
+              )
+            }
+          />
+
+        ))}
+
+      </div>
+
+    </div>
+
+  )
+}
+
+                {b.projectFiles?.length>0 && (
+
+<div className="mt-6">
+
+<h4 className="font-semibold mb-4">
+
+Project Deliverables
+
+</h4>
+
+<div className="space-y-3">
+
+    {b.projectFiles.map((file,index)=>(
+
+    <div
+    key={index}
+    className="flex flex-col md:flex-row md:items-center md:justify-between border rounded-xl p-4 bg-gray-50"
+    >
+
+    <div className="flex items-center gap-3">
+
+    {getFileIcon(file.fileName)}
+
+    <div>
+
+    <p className="font-medium">
+
+    {file.fileName}
+
+    </p>
+
+    <p className="text-xs text-gray-500">
+
+    {file.mimeType || "Document"}
+
+    </p>
+
+    </div>
+
+    </div>
+
+<div className="flex gap-3 mt-3 md:mt-0">
+
+{canPreview(file.fileName) && (
+
+<button
+
+onClick={() => viewFile(file)}
+
+className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 flex items-center gap-2"
+
+>
+
+<FaEye />
+
+View
+
+</button>
+
+)}
+
+<button
+
+onClick={() => downloadFile(file)}
+
+className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 flex items-center gap-2"
+
+>
+
+<FaDownload />
+
+Download
+
+</button>
+
+</div>
+
+    </div>
+
+    ))}
+
+</div>
+
+</div>
+
+)}
 
                   <p className="mt-4 text-xs text-ink-subtle">Submitted {new Date(b.createdAt).toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric" })}</p>
                 </div>

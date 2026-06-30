@@ -11,6 +11,15 @@ import {
   FaFileAlt,
   FaSyncAlt,
   FaSearch,
+  FaEye,
+  FaDownload,
+  FaTrash,
+  FaFilePdf,
+  FaFileWord,
+  FaFileExcel,
+  FaFilePowerpoint,
+  FaFileImage,
+  FaFileArchive
 } from "react-icons/fa";
 
 const BASE_URL =
@@ -167,17 +176,37 @@ const AdminDashboard = () => {
 
     if (!confirmUpload) return;
 
-    const allowedTypes = [
+const allowedTypes = [
 
-      "application/pdf",
+"application/pdf",
 
-      "image/jpeg",
+"application/msword",
 
-      "image/png",
+"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 
-      "application/zip"
+"application/vnd.ms-excel",
 
-    ];
+"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+
+"application/vnd.ms-powerpoint",
+
+"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+
+"text/plain",
+
+"application/zip",
+
+"application/x-rar-compressed",
+
+"image/jpeg",
+
+"image/png",
+
+"image/gif",
+
+"image/webp"
+
+];
 
     if (!allowedTypes.includes(file.type)) {
 
@@ -244,7 +273,7 @@ const AdminDashboard = () => {
 
       toast.success(
 
-        "File uploaded successfully."
+      `${file.name} uploaded successfully.`
 
       );
 
@@ -263,7 +292,80 @@ const AdminDashboard = () => {
     }
 
   };
+// ===========================
+// File Helpers
+// ===========================
 
+const getExtension = (fileName = "") =>
+  fileName.split(".").pop().toLowerCase();
+
+const getIcon = (fileName = "") => {
+
+  const ext = getExtension(fileName);
+
+  switch (ext) {
+
+    case "pdf":
+      return <FaFilePdf className="text-red-500" />;
+
+    case "doc":
+    case "docx":
+      return <FaFileWord className="text-blue-600" />;
+
+    case "xls":
+    case "xlsx":
+      return <FaFileExcel className="text-green-600" />;
+
+    case "ppt":
+    case "pptx":
+      return <FaFilePowerpoint className="text-orange-500" />;
+
+    case "jpg":
+    case "jpeg":
+    case "png":
+    case "gif":
+    case "webp":
+      return <FaFileImage className="text-pink-500" />;
+
+    case "zip":
+    case "rar":
+      return <FaFileArchive className="text-yellow-600" />;
+
+    default:
+      return <FaFileAlt className="text-gray-500" />;
+
+  }
+
+};
+
+const viewFile = (file) => {
+
+  window.open(
+
+    `${BASE_URL}/uploads/project-files/${file.filePath}`,
+
+    "_blank"
+
+  );
+
+};
+
+const downloadFile = (file) => {
+
+  const link = document.createElement("a");
+
+  link.href =
+    `${BASE_URL}/uploads/project-files/${file.filePath}`;
+
+  link.download = file.fileName;
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
+
+};
   // ===========================
   // Search Filter
   // ===========================
@@ -735,37 +837,84 @@ const AdminDashboard = () => {
 
         <div className="space-y-3">
 
-          {
+{
+booking.projectFiles?.length > 0 && (
 
-          booking.projectFiles.map(
+<div className="mt-6">
 
-          (file,index)=>(
+<h4 className="font-semibold mb-4">
 
-          <a
+Uploaded Files
 
-            key={index}
+</h4>
 
-            href={`${BASE_URL}/uploads/project-files/${file.filePath}`}
+<div className="space-y-3">
 
-            target="_blank"
+{booking.projectFiles.map((file,index)=>(
 
-            rel="noreferrer"
+<div
+key={index}
+className="flex flex-col lg:flex-row lg:items-center lg:justify-between border rounded-xl p-4 bg-gray-50"
+>
 
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+<div className="flex items-center gap-3">
 
-          >
+{getIcon(file.fileName)}
 
-            <FaFileAlt />
+<div>
 
-            {file.fileName}
+<p className="font-medium">
 
-          </a>
+{file.fileName}
 
-          )
+</p>
 
-          )
+<p className="text-sm text-gray-500">
 
-          }
+{file.mimeType || "Document"}
+
+</p>
+
+</div>
+
+</div>
+
+<div className="flex gap-3 mt-3 lg:mt-0">
+
+<button
+onClick={()=>viewFile(file)}
+className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 flex items-center gap-2"
+>
+
+<FaEye />
+
+View
+
+</button>
+
+<button
+onClick={()=>downloadFile(file)}
+className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 flex items-center gap-2"
+>
+
+<FaDownload />
+
+Download
+
+</button>
+
+</div>
+
+</div>
+
+))}
+
+</div>
+
+</div>
+
+)
+}
 
         </div>
 
@@ -801,17 +950,17 @@ const AdminDashboard = () => {
 
           (img,index)=>(
 
-          <img
-
-            key={index}
-
-            src={`${BASE_URL}/uploads/${img}`}
-
-            alt="Reference"
-
-            className="rounded-xl border object-cover h-28 w-full"
-
-          />
+        <img
+        src={`${BASE_URL}/uploads/${img}`}
+        alt="Reference"
+        className="rounded-xl border object-cover h-32 w-full cursor-pointer hover:scale-105 transition"
+        onClick={()=>
+        window.open(
+        `${BASE_URL}/uploads/${img}`,
+        "_blank"
+        )
+        }
+        />
 
           )
 

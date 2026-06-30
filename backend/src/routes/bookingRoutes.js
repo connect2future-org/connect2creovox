@@ -20,11 +20,12 @@ const {
   getAllBookings,
   updateStatus,
   updateAdminNotes,
-  uploadProjectFile
+  uploadProjectFile,
+  deleteProjectFile,
+  downloadProjectFile,
+  viewProjectFile
 
-}
-=
-require("../controllers/bookingController");
+} = require("../controllers/bookingController");
 
 router.post(
  "/create",
@@ -78,7 +79,24 @@ projectUpload.single("file"),
 uploadProjectFile
 );
 
+router.get(
+  "/file/view/:bookingId/:fileId",
+  protect,
+  viewProjectFile
+);
 
+router.get(
+  "/file/download/:bookingId/:fileId",
+  protect,
+  downloadProjectFile
+);
+
+router.delete(
+  "/file/:bookingId/:fileId",
+  protect,
+  authorize("admin"),
+  deleteProjectFile
+);
 
 
 

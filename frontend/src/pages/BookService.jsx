@@ -96,6 +96,7 @@ const BookService = () => {
       await api.post("/api/bookings/create", data, {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
       });
 
