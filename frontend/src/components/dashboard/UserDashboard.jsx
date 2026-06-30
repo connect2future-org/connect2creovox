@@ -242,14 +242,14 @@ document.body.removeChild(link);
 
           <img
             key={index}
-            src={`${BASE_URL}/uploads/${img}`}
+            src={`${BASE_URL}/uploads/booking-images/${img}`}
             alt="Reference"
             className="rounded-xl border h-32 w-full object-cover cursor-pointer hover:scale-105 transition"
             onClick={() =>
-              window.open(
-                `${BASE_URL}/uploads/${img}`,
-                "_blank"
-              )
+            window.open(
+            `${BASE_URL}/uploads/booking-images/${img}`,
+            "_blank"
+            )
             }
           />
 

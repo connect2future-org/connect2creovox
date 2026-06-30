@@ -19,7 +19,7 @@ const BookService = () => {
     description: "",
   });
 
-  const [images, setImages] = useState([]);
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -29,23 +29,89 @@ const BookService = () => {
     });
   };
 
-  const handleImageChange = (e) => {
-    const selectedFiles = [...e.target.files];
+const handleFileChange = (e) => {
 
-    if (selectedFiles.length > 5) {
-      toast.error("You can upload a maximum of 5 images.");
+  const selectedFiles = [...e.target.files];
+
+  if (selectedFiles.length > 5) {
+
+    toast.error(
+      "You can upload a maximum of 5 files."
+    );
+
+    return;
+
+  }
+
+  const allowedExtensions = [
+
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "webp",
+
+    "pdf",
+
+    "doc",
+    "docx",
+
+    "txt",
+
+    "xls",
+    "xlsx",
+
+    "ppt",
+    "pptx",
+
+    "zip",
+    "rar"
+
+  ];
+
+  for (const file of selectedFiles) {
+
+    const ext =
+      file.name
+        .split(".")
+        .pop()
+        .toLowerCase();
+
+    if (!allowedExtensions.includes(ext)) {
+
+      toast.error(
+
+        `${file.name} is not a supported file type.`
+
+      );
+
       return;
+
     }
 
-    for (const file of selectedFiles) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} exceeds the 5 MB limit.`);
-        return;
-      }
+    if (
+
+      file.size >
+
+      20 * 1024 * 1024
+
+    ) {
+
+      toast.error(
+
+        `${file.name} exceeds the 20 MB limit.`
+
+      );
+
+      return;
+
     }
 
-    setImages(selectedFiles);
-  };
+  }
+
+  setFiles(selectedFiles);
+
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,8 +155,10 @@ const BookService = () => {
         data.append(key, formData[key]);
       });
 
-      images.forEach((img) => {
-        data.append("images", img);
+      files.forEach((file) => {
+
+        data.append("images", file);
+
       });
 
       await api.post("/api/bookings/create", data, {
@@ -169,13 +237,63 @@ const BookService = () => {
             <div>
               <label className={labelCls}>Reference Images (optional)</label>
               <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-brand-300 transition-colors">
-                <FaUpload className="text-brand-300 text-2xl mx-auto mb-2" />
-                <p className="text-ink-muted text-sm mb-2">Drag & drop or click to upload</p>
-                <input type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" id="file-upload" />
-                <label htmlFor="file-upload" className="btn btn-ghost text-sm px-4 py-2 cursor-pointer">Browse Files</label>
-                {images.length > 0 && <p className="text-brand-500 text-xs mt-2 font-medium">{images.length} file(s) selected</p>}
+
+              <FaUpload className="text-brand-300 text-2xl mx-auto mb-2"/>
+
+              <p className="text-ink-muted text-sm mb-2">
+
+              Upload Images, PDFs, Word, Excel, PowerPoint, ZIP or TXT files
+
+              </p>
+
+              <input
+
+              type="file"
+
+              multiple
+
+              accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
+
+              onChange={handleFileChange}
+
+              className="hidden"
+
+              id="file-upload"
+
+              />
+
+              <label
+
+              htmlFor="file-upload"
+
+              className="btn btn-ghost text-sm px-4 py-2 cursor-pointer"
+
+              >
+
+              Browse Files
+
+              </label>
+
+              {
+
+              files.length>0 &&
+
+              (
+
+              <p className="text-brand-500 text-xs mt-2 font-medium">
+
+              {files.length} file(s) selected
+
+              </p>
+
+              )
+
+              }
+
               </div>
-            </div>
+                
+              </div>
+           
 
             <button type="submit" disabled={loading}
               className="btn btn-primary w-full justify-center py-4 text-base">

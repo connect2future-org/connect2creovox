@@ -951,12 +951,12 @@ Download
           (img,index)=>(
 
         <img
-        src={`${BASE_URL}/uploads/${img}`}
+            src={`${BASE_URL}/uploads/booking-images/${img}`}
         alt="Reference"
         className="rounded-xl border object-cover h-32 w-full cursor-pointer hover:scale-105 transition"
         onClick={()=>
         window.open(
-        `${BASE_URL}/uploads/${img}`,
+        `${BASE_URL}/uploads/booking-images/${img}`,
         "_blank"
         )
         }
