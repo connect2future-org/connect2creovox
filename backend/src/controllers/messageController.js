@@ -1,173 +1,258 @@
-const Message = require('../models/Message');
-const nodemailer = require('nodemailer');
+const Message = require("../models/Message");
 
-// @desc    Send Message
-// @route   POST /api/messages
-// @access  Public
+// =======================================
+// Send Message
+// POST /api/messages
+// Public
+// =======================================
 
 exports.sendMessage = async (req, res) => {
+
   try {
 
     const sanitize = (value) =>
+
       typeof value === "string"
+
         ? value.trim()
+
         : "";
 
     const emailRegex =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    const phoneRegex =
+      /^[6-9]\d{9}$/;
+
     let {
+
+      service,
+
+      budget,
+
+      timeline,
+
       name,
+
       email,
-      subject,
-      message
+
+      phone,
+
+      company,
+
+      requirements
+
     } = req.body;
 
+    service = sanitize(service);
+
+    budget = sanitize(budget);
+
+    timeline = sanitize(timeline);
+
     name = sanitize(name);
+
     email = sanitize(email).toLowerCase();
-    subject = sanitize(subject);
-    message = sanitize(message);
 
+    phone = sanitize(phone);
+
+    company = sanitize(company);
+
+    requirements = sanitize(requirements);
+
+    // ===========================
     // Required Fields
+    // ===========================
 
-    if (!name || !email || !subject || !message) {
+    if (
+
+      !service ||
+
+      !budget ||
+
+      !timeline ||
+
+      !name ||
+
+      !email ||
+
+      !phone ||
+
+      !requirements
+
+    ) {
+
       return res.status(400).json({
+
         success: false,
-        message: "Please fill all required fields."
+
+        message:
+
+          "Please fill all required fields."
+
       });
+
     }
 
-    // Name Validation
+    // ===========================
+    // Name
+    // ===========================
 
-    if (name.length < 3 || name.length > 50) {
+    if (
+
+      name.length < 3 ||
+
+      name.length > 50
+
+    ) {
+
       return res.status(400).json({
+
         success: false,
-        message: "Name must contain between 3 and 50 characters."
+
+        message:
+
+          "Name should contain between 3 and 50 characters."
+
       });
+
     }
 
-    // Email Validation
+    // ===========================
+    // Email
+    // ===========================
 
     if (!emailRegex.test(email)) {
+
       return res.status(400).json({
+
         success: false,
-        message: "Please enter a valid email address."
+
+        message:
+
+          "Please enter a valid email address."
+
       });
+
     }
 
-    // Subject Validation
+    // ===========================
+    // Phone
+    // ===========================
 
-    if (subject.length < 5 || subject.length > 100) {
+    if (!phoneRegex.test(phone)) {
+
       return res.status(400).json({
+
         success: false,
-        message: "Subject must contain between 5 and 100 characters."
+
+        message:
+
+          "Please enter a valid mobile number."
+
       });
+
     }
 
-    // Message Validation
+    // ===========================
+    // Requirements
+    // ===========================
 
-    if (message.length < 10) {
+    if (requirements.length < 10) {
+
       return res.status(400).json({
+
         success: false,
-        message: "Message should contain at least 10 characters."
+
+        message:
+
+          "Requirements should contain at least 10 characters."
+
       });
+
     }
 
-    if (message.length > 2000) {
+    if (requirements.length > 3000) {
+
       return res.status(400).json({
+
         success: false,
-        message: "Message is too long."
+
+        message:
+
+          "Requirements are too long."
+
       });
+
     }
 
+    // ===========================
     // Save Message
+    // ===========================
 
     const newMessage = await Message.create({
+
+      service,
+
+      budget,
+
+      timeline,
+
       name,
+
       email,
-      subject,
-      message
+
+      phone,
+
+      company,
+
+      requirements
+
     });
-
-    // Send Email (optional)
-
-    try {
-
-      if (
-        process.env.EMAIL_USER &&
-        process.env.EMAIL_PASS &&
-        process.env.EMAIL_USER !== "your_email@gmail.com"
-      ) {
-
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-          }
-        });
-
-        await transporter.sendMail({
-
-          from: process.env.EMAIL_USER,
-
-          to: process.env.EMAIL_USER,
-
-          subject: `New Contact Message : ${subject}`,
-
-          html: `
-            <h2>New Contact Form Submission</h2>
-
-            <p><strong>Name:</strong> ${name}</p>
-
-            <p><strong>Email:</strong> ${email}</p>
-
-            <p><strong>Subject:</strong> ${subject}</p>
-
-            <hr>
-
-            <p>${message}</p>
-          `
-        });
-
-      }
-
-    } catch (mailError) {
-
-      console.error(
-        "Email Error:",
-        mailError.message
-      );
-
-    }
 
     return res.status(201).json({
 
       success: true,
 
       message:
-        "Message sent successfully.",
+
+        "Consultation request submitted successfully.",
 
       data: newMessage
 
     });
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.error(
+
       "Send Message Error:",
+
       error
+
     );
 
-    if (error.name === "ValidationError") {
+    if (
+
+      error.name ===
+
+      "ValidationError"
+
+    ) {
 
       return res.status(400).json({
 
         success: false,
 
-        message: Object.values(error.errors)
-          .map(err => err.message)
-          .join(", ")
+        message:
+
+          Object.values(error.errors)
+
+            .map(err => err.message)
+
+            .join(", ")
 
       });
 
@@ -178,84 +263,202 @@ exports.sendMessage = async (req, res) => {
       success: false,
 
       message:
+
         "Internal server error."
 
     });
 
   }
+
 };
+// =======================================
+// Get All Messages
+// GET /api/messages
+// Private/Admin
+// =======================================
 
-
-
-// @desc    Get all messages
-// @route   GET /api/messages
-// @access  Private/Admin
 exports.getMessages = async (req, res) => {
+
   try {
-    const messages = await Message.find().sort({ createdAt: -1 });
-    res.status(200).json({
+
+    const messages = await Message.find()
+
+      .sort({
+
+        createdAt: -1
+
+      });
+
+    return res.status(200).json({
+
       success: true,
+
       count: messages.length,
+
       messages
+
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+
   }
+
+  catch (error) {
+
+    console.error(
+
+      "Get Messages Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
+      success: false,
+
+      message:
+
+        "Internal server error."
+
+    });
+
+  }
+
 };
 
-// @desc    Mark message as read
-// @route   PUT /api/messages/:id/read
-// @access  Private/Admin
+// =======================================
+// Mark Message As Read
+// PUT /api/messages/:id/read
+// Private/Admin
+// =======================================
+
 exports.markAsRead = async (req, res) => {
+
   try {
-    const message = await Message.findById(req.params.id);
+
+    const message = await Message.findById(
+
+      req.params.id
+
+    );
+
     if (!message) {
+
       return res.status(404).json({
+
         success: false,
-        message: 'Message not found'
+
+        message:
+
+          "Message not found."
+
       });
+
     }
 
     message.isRead = true;
+
     await message.save();
 
-    res.status(200).json({
+    return res.status(200).json({
+
       success: true,
-      message: 'Message marked as read'
+
+      message:
+
+        "Message marked as read."
+
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+
   }
+
+  catch (error) {
+
+    console.error(
+
+      "Mark Message Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
+      success: false,
+
+      message:
+
+        "Internal server error."
+
+    });
+
+  }
+
 };
 
-// @desc    Delete message
-// @route   DELETE /api/messages/:id
-// @access  Private/Admin
+// =======================================
+// Delete Message
+// DELETE /api/messages/:id
+// Private/Admin
+// =======================================
+
 exports.deleteMessage = async (req, res) => {
+
   try {
-    const message = await Message.findById(req.params.id);
+
+    const message = await Message.findById(
+
+      req.params.id
+
+    );
+
     if (!message) {
+
       return res.status(404).json({
+
         success: false,
-        message: 'Message not found'
+
+        message:
+
+          "Message not found."
+
       });
+
     }
 
     await message.deleteOne();
-    res.status(200).json({
+
+    return res.status(200).json({
+
       success: true,
-      message: 'Message deleted successfully'
+
+      message:
+
+        "Message deleted successfully."
+
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+
   }
+
+  catch (error) {
+
+    console.error(
+
+      "Delete Message Error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
+      success: false,
+
+      message:
+
+        "Internal server error."
+
+    });
+
+  }
+
 };
