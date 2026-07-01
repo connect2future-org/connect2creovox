@@ -12,7 +12,7 @@ const fadeRight = { hidden: { opacity: 0, x:  50 }, show: { opacity: 1, x: 0, tr
 
 const HeroSection = () => {
   const badges = [
-    { icon: FaPaintBrush,      label: "Modern Design",      sub: "Clean & Aesthetic" },
+    { icon: FaPaintBrush,      label: "Creative Excellence",      sub: "Clean & Aesthetic" },
     { icon: FaExpandArrowsAlt, label: "Scalable Solutions", sub: "Built for Growth" },
     { icon: FaClock,           label: "Timely Delivery",    sub: "On Time, Every Time" },
   ];
@@ -58,8 +58,9 @@ const HeroSection = () => {
               className="mt-6 text-ink-muted leading-relaxed max-w-[520px]"
               style={{ fontSize: "1.05rem" }}
             >
-              Connect2Creovox helps businesses grow with stunning websites,
-              powerful software and impactful branding.
+            Connect2Creovox empowers startups, enterprises and growing businesses
+            through premium web experiences, intelligent software solutions,
+            creative branding and performance-driven digital marketing.
             </motion.p>
 
             {/* CTA buttons */}
@@ -137,9 +138,9 @@ const HeroSection = () => {
   }}
   className="
     absolute
-    top-24
-    -left-28
-    w-56
+    top-20
+    -left-24
+    w-52
     z-20
     pointer-events-none
     select-none
@@ -148,7 +149,10 @@ const HeroSection = () => {
               <motion.img
                 src={creativeStudioCard}
                 alt="Creative Studio – Connect2Creovox"
-                animate={{ y: [0, -12, 0] }}
+                animate={{
+                    y:[0,-10,0],
+                    rotate:[0,1.5,0,-1.5,0]
+                }}
                 transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
                 className="
                 relative

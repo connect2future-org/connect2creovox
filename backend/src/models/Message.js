@@ -14,13 +14,23 @@ trim:true
 
 },
 
-budget:{
+budget: {
 
-type:String,
+    type: String,
 
-required:[true,"Please select a budget"],
+    enum: [
 
-trim:true
+        "Under ₹10K",
+
+        "₹10K – ₹50K",
+
+        "₹50K – ₹1L",
+
+        "₹1L+"
+
+    ],
+
+    required: true
 
 },
 
@@ -28,9 +38,21 @@ timeline:{
 
 type:String,
 
-required:[true,"Please select a timeline"],
+enum:[
 
-trim:true
+"ASAP",
+
+"1 Week",
+
+"2 Weeks",
+
+"1 Month",
+
+"Flexible"
+
+],
+
+required:true
 
 },
 
@@ -135,5 +157,15 @@ timestamps:true
 }
 
 );
+messageSchema.index({
 
+isRead:1
+
+});
+
+messageSchema.index({
+
+createdAt:-1
+
+});
 module.exports=mongoose.model("Message",messageSchema);

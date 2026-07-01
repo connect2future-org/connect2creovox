@@ -55,9 +55,25 @@ const bookingSchema = new mongoose.Schema(
     ]
 },
 
-  budget: {
-    type: String
-  },
+budget: {
+
+    type: String,
+
+    enum: [
+
+        "Under ₹10K",
+
+        "₹10K – ₹50K",
+
+        "₹50K – ₹1L",
+
+        "₹1L+"
+
+    ],
+
+    required: true
+
+},
 
   description: {
     type: String,
@@ -92,20 +108,61 @@ const bookingSchema = new mongoose.Schema(
     maxlength: 1000,
     default: ""
 },
-  projectFiles: [
-    {
-      fileName: String,
-      filePath: String,
-      uploadedAt: {
-        type: Date,
-        default: Date.now
-      }
-    }
-  ],
+projectFiles: [
+
+{
+
+fileName:{
+
+type:String,
+
+required:true
+
+},
+
+filePath:{
+
+type:String,
+
+required:true
+
+},
+
+fileSize:Number,
+
+mimeType:String,
+
+uploadedAt:{
+
+type:Date,
+
+default:Date.now
+
+}
+
+}
+
+],
 },
 {
   timestamps: true
 }
 );
+bookingSchema.index({
 
+user:1
+
+});
+
+bookingSchema.index({
+
+status:1
+
+});
+
+bookingSchema.index({
+
+createdAt:-1
+
+});
 module.exports = mongoose.model("Booking", bookingSchema);

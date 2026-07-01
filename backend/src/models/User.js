@@ -41,10 +41,7 @@ company: {
     trim: true,
     maxlength: [100, "Company name cannot exceed 100 characters"]
 },
-createdAt: {
-    type: Date,
-    default: Date.now
-  }
+
 }, 
 {
   timestamps: true
@@ -64,6 +61,8 @@ userSchema.pre('save', async function(next) {
 userSchema.methods.comparePassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
-
+userSchema.index({
+    email: 1
+});
 
 module.exports = mongoose.model('User', userSchema);

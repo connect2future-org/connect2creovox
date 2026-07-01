@@ -138,7 +138,7 @@ const Footer = () => (
     {/* ── Bottom bar ── */}
     <div className="border-t border-white/5">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <p className="text-gray-600 text-xs">© 2025 Connect2Creovox. All Rights Reserved.</p>
+        <p className="text-gray-600 text-xs">© {new Date().getFullYear()} Connect2Creovox. All Rights Reserved.</p>
         <div className="flex gap-6">
           <Link to="#" className="text-gray-600 text-xs hover:text-brand-400 transition-colors">Privacy Policy</Link>
           <Link to="#" className="text-gray-600 text-xs hover:text-brand-400 transition-colors">Terms & Conditions</Link>

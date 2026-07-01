@@ -10,14 +10,28 @@ ref: "User",
 required: true
 },
 
-title: {
-type: String,
-required: true
+title:{
+
+type:String,
+
+required:true,
+
+trim:true,
+
+maxlength:100
+
 },
 
-message: {
-type: String,
-required: true
+message:{
+
+type:String,
+
+required:true,
+
+trim:true,
+
+maxlength:1000
+
 },
 
 read: {
@@ -30,6 +44,25 @@ default: false
 timestamps: true
 }
 );
+notificationSchema.index({
+
+user:1
+
+});
+
+notificationSchema.index({
+
+read:1
+
+});
+
+notificationSchema.index({
+
+createdAt:-1
+
+});
+
+
 
 module.exports =
 mongoose.model(

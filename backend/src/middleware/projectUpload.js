@@ -1,6 +1,8 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const processImage = require("../utils/imageProcessor");
+
 
 // ============================================
 // Upload Folder
@@ -24,26 +26,16 @@ if (!fs.existsSync(uploadDir)) {
 const allowedExtensions = [
 
   ".jpg",
+
   ".jpeg",
-  ".png",
-  ".gif",
-  ".webp",
 
   ".pdf",
 
   ".doc",
+
   ".docx",
 
-  ".txt",
-
-  ".xls",
-  ".xlsx",
-
-  ".ppt",
-  ".pptx",
-
-  ".zip",
-  ".rar"
+  ".txt"
 
 ];
 
@@ -54,9 +46,6 @@ const allowedExtensions = [
 const allowedMimeTypes = [
 
   "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
 
   "application/pdf",
 
@@ -64,21 +53,7 @@ const allowedMimeTypes = [
 
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 
-  "text/plain",
-
-  "application/vnd.ms-excel",
-
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-
-  "application/vnd.ms-powerpoint",
-
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-
-  "application/zip",
-
-  "application/x-rar-compressed",
-
-  "application/vnd.rar"
+  "text/plain"
 
 ];
 
@@ -127,33 +102,29 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
 
-  const ext =
-    path.extname(file.originalname).toLowerCase();
+  const ext = path
+    .extname(file.originalname)
+    .toLowerCase();
 
-  const mime =
-    file.mimetype;
+  const mime = file.mimetype;
 
-  if (
+  const extensionAllowed =
+    allowedExtensions.includes(ext);
 
-    allowedExtensions.includes(ext) &&
+  const mimeAllowed =
+    allowedMimeTypes.includes(mime);
 
-    allowedMimeTypes.includes(mime)
+  if (!extensionAllowed || !mimeAllowed) {
 
-  ) {
-
-    return cb(null, true);
+    return cb(
+      new Error(
+        "Only JPG, PDF, DOC, DOCX and TXT files are allowed."
+      )
+    );
 
   }
 
-  cb(
-
-    new Error(
-
-      "Unsupported file type. Allowed: PDF, DOC, DOCX, TXT, JPG, PNG, GIF, WEBP, XLS, XLSX, PPT, PPTX, ZIP, RAR."
-
-    )
-
-  );
+  cb(null, true);
 
 };
 
@@ -169,7 +140,7 @@ const upload = multer({
 
   limits: {
 
-    fileSize: 20 * 1024 * 1024 // 20 MB
+    fileSize: 10 * 1024 * 1024
 
   }
 
@@ -179,4 +150,34 @@ const upload = multer({
 // Export
 // ============================================
 
-module.exports = upload;
+module.exports = {
+
+  single: (fieldName) => [
+
+    upload.single(fieldName),
+
+    async (req, res, next) => {
+
+      try {
+
+        if (req.file) {
+
+          await processImage(req.file.path);
+
+        }
+
+        next();
+
+      }
+
+      catch (err) {
+
+        next(err);
+
+      }
+
+    }
+
+  ]
+
+};

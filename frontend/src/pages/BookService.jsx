@@ -21,6 +21,13 @@ const BookService = () => {
 
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const removeFile = (index) => {
+
+  setFiles((prev) =>
+    prev.filter((_, i) => i !== index)
+  );
+
+};
 
   const handleChange = (e) => {
     setFormData({
@@ -43,31 +50,21 @@ const handleFileChange = (e) => {
 
   }
 
-  const allowedExtensions = [
+const allowedExtensions = [
 
-    "jpg",
-    "jpeg",
-    "png",
-    "gif",
-    "webp",
+  "jpg",
 
-    "pdf",
+  "jpeg",
 
-    "doc",
-    "docx",
+  "pdf",
 
-    "txt",
+  "doc",
 
-    "xls",
-    "xlsx",
+  "docx",
 
-    "ppt",
-    "pptx",
+  "txt"
 
-    "zip",
-    "rar"
-
-  ];
+];
 
   for (const file of selectedFiles) {
 
@@ -93,13 +90,13 @@ const handleFileChange = (e) => {
 
       file.size >
 
-      20 * 1024 * 1024
+      10 * 1024 * 1024
 
     ) {
 
       toast.error(
 
-        `${file.name} exceeds the 20 MB limit.`
+        `${file.name} exceeds the 10 MB limit.`
 
       );
 
@@ -168,7 +165,9 @@ const handleFileChange = (e) => {
         },
       });
 
-      toast.success("Service request submitted successfully!");
+      toast.success(
+  "🎉 Your project request has been submitted successfully. Our team will contact you shortly."
+);
 
       navigate("/user-dashboard");
     } catch (err) {
@@ -235,14 +234,22 @@ const handleFileChange = (e) => {
             </div>
 
             <div>
-              <label className={labelCls}>Reference Images (optional)</label>
+              <label className={labelCls}>Project Reference Files (Optional)</label>
               <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-brand-300 transition-colors">
 
-              <FaUpload className="text-brand-300 text-2xl mx-auto mb-2"/>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-brand-50 flex items-center justify-center">
+
+                <FaUpload className="text-brand-500 text-2xl" />
+
+              </div>
 
               <p className="text-ink-muted text-sm mb-2">
 
-              Upload Images, PDFs, Word, Excel, PowerPoint, ZIP or TXT files
+              Upload JPG, PDF, DOC/DOCX or TXT files.
+
+              Maximum 5 files.
+
+              Maximum 10 MB each.
 
               </p>
 
@@ -252,7 +259,7 @@ const handleFileChange = (e) => {
 
               multiple
 
-              accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
+              accept=".jpg,.jpeg,.pdf,.doc,.docx,.txt"
 
               onChange={handleFileChange}
 
@@ -273,22 +280,51 @@ const handleFileChange = (e) => {
               Browse Files
 
               </label>
+                {files.length > 0 && (
 
-              {
+  <div className="mt-5 space-y-3">
 
-              files.length>0 &&
+    {files.map((file, index) => (
 
-              (
+      <div
+        key={index}
+        className="flex items-center justify-between rounded-xl border bg-gray-50 px-4 py-3"
+      >
 
-              <p className="text-brand-500 text-xs mt-2 font-medium">
+        <div>
 
-              {files.length} file(s) selected
+          <p className="font-medium text-sm break-all">
 
-              </p>
+            {file.name}
 
-              )
+          </p>
 
-              }
+          <p className="text-xs text-gray-500">
+
+            {(file.size / 1024).toFixed(1)} KB
+
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          onClick={() => removeFile(index)}
+          className="text-red-500 hover:text-red-700 text-sm font-semibold"
+        >
+
+          Remove
+
+        </button>
+
+      </div>
+
+    ))}
+
+  </div>
+
+)}
+
 
               </div>
                 
@@ -297,7 +333,7 @@ const handleFileChange = (e) => {
 
             <button type="submit" disabled={loading}
               className="btn btn-primary w-full justify-center py-4 text-base">
-              {loading ? "Submitting..." : <>Submit Request <FaArrowRight /></>}
+              {loading ? "⏳ Submitting Your Request..." : <>Submit Request <FaArrowRight /></>}
             </button>
 
           </form>

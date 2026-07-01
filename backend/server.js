@@ -8,7 +8,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
 dotenv.config();
-
+const mongoSanitize = require("express-mongo-sanitize");
+const hpp = require("hpp");
 const connectDB = require("./src/config/database");
 
 const authRoutes = require("./src/routes/authRoutes");
@@ -23,13 +24,16 @@ const errorHandler =require("./src/middleware/errorHandler");
 // Security Headers
 app.use(helmet());
 
-// Compress responses
 app.use(compression());
 
-// Limit request size
+app.use(mongoSanitize());
+
+app.use(hpp());
+
 app.use(express.json({
-  limit: "10mb"
+    limit: "10mb"
 }));
+
 
 // Rate Limiter
 const limiter = rateLimit({
@@ -42,11 +46,45 @@ const limiter = rateLimit({
   }
 });
 
+const uploadLimiter = rateLimit({
+
+windowMs:60*60*1000,
+
+max:10,
+
+message:{
+
+success:false,
+
+message:
+
+"Too many uploads. Please try again later."
+
+}
+
+});
+
 app.use(limiter);
 console.log("MONGODB_URI =", process.env.MONGODB_URI);
 connectDB();
 
-app.use(cors());
+app.use(
+
+cors({
+
+origin:[
+
+"http://localhost:5173",
+
+"https://YOUR-VERCEL-DOMAIN.vercel.app"
+
+],
+
+credentials:true
+
+})
+
+);
 app.use(express.json());
 app.use(
   express.urlencoded({

@@ -34,9 +34,9 @@ const Navbar = () => {
   const isActive = (p) => p === "/" ? location.pathname === "/" : location.pathname.startsWith(p);
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-400 ${scrolled ? "navbar-blur" : "bg-white/80"}`}>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-400 ${scrolled ? "navbar-blur" : "bg-white/90 backdrop-blur-md"}`}>
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-[82px]">
 
           {/* ── Logo ── */}
           <Logo />
@@ -123,7 +123,11 @@ const Navbar = () => {
                     >
                       <MdDashboard className="mr-2" /> Dashboard
                     </Link>
-                    <button onClick={handleLogout} className="btn btn-primary text-sm justify-center">
+
+                    <button
+                      onClick={handleLogout}
+                      className="btn btn-primary text-sm justify-center"
+                    >
                       <MdLogout className="mr-2" /> Logout
                     </button>
                   </>

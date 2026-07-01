@@ -15,10 +15,8 @@ import {
   FaFileAlt,
   FaFilePdf,
   FaFileWord,
-  FaFileExcel,
-  FaFilePowerpoint,
   FaFileImage,
-  FaFileArchive
+  FaFileText
 } from "react-icons/fa";
 
 const statusBadge = (status) => {
@@ -54,44 +52,43 @@ const UserDashboard = () => {
 const getExtension = (fileName="") =>
 fileName.split(".").pop().toLowerCase();
 
-const getFileIcon = (fileName="") => {
+switch (ext) {
 
-const ext = getExtension(fileName);
+  case "pdf":
+    return <FaFilePdf className="text-red-500" />;
 
-switch(ext){
+  case "doc":
+  case "docx":
+    return <FaFileWord className="text-blue-600" />;
 
-case "pdf":
-return <FaFilePdf className="text-red-500"/>;
+  case "jpg":
+  case "jpeg":
+    return <FaFileImage className="text-pink-500" />;
 
-case "doc":
-case "docx":
-return <FaFileWord className="text-blue-600"/>;
+  case "txt":
+    return <FaFileText className="text-gray-600" />;
 
-case "xls":
-case "xlsx":
-return <FaFileExcel className="text-green-600"/>;
-
-case "ppt":
-case "pptx":
-return <FaFilePowerpoint className="text-orange-500"/>;
-
-case "jpg":
-case "jpeg":
-case "png":
-case "gif":
-case "webp":
-return <FaFileImage className="text-pink-500"/>;
-
-case "zip":
-case "rar":
-return <FaFileArchive className="text-yellow-600"/>;
-
-default:
-return <FaFileAlt className="text-gray-500"/>;
+  default:
+    return <FaFileAlt className="text-gray-500" />;
 
 }
 
+const isImage = (file) => {
+
+  const ext = file
+    .split(".")
+    .pop()
+    .toLowerCase();
+
+  return [
+
+    "jpg",
+    "jpeg"
+
+  ].includes(ext);
+
 };
+
 
 const viewFile=(file)=>{
 
@@ -104,6 +101,92 @@ window.open(
 );
 
 };
+
+
+// ======================================
+// Reference File Helpers
+// ======================================
+
+const getReferenceFileExtension = (file = "") => {
+
+  return file
+    .split(".")
+    .pop()
+    .toLowerCase();
+
+};
+const displayFileName = (name = "") => {
+
+  return name.replace(/^\d+-/, "");
+
+};
+
+const isReferenceImage = (file = "") => {
+
+  return [
+
+    "jpg",
+
+    "jpeg"
+
+  ].includes(
+
+    getReferenceFileExtension(file)
+
+  );
+
+};
+
+const canPreviewReference = (file = "") => {
+
+  return [
+
+    "jpg",
+
+    "jpeg",
+
+    "pdf",
+
+    "txt"
+
+  ].includes(
+
+    getReferenceFileExtension(file)
+
+  );
+
+};
+
+const openReferenceFile = (file) => {
+
+  window.open(
+
+    `${BASE_URL}/uploads/booking-images/${displayFileName(file)}`,
+
+    "_blank"
+
+  );
+
+};
+
+const downloadReferenceFile = (file) => {
+
+  const link = document.createElement("a");
+
+  link.href =
+    `${BASE_URL}/uploads/booking-images/${displayFileName(file)}`;
+
+  link.download = file;
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
+
+};
+
+
 // ===============================
 // Can Preview File?
 // ===============================
@@ -157,10 +240,10 @@ document.body.removeChild(link);
 
 
   const stats = [
-    { icon: <FaClipboardList />,  label: "Total Requests",   value: bookings.length,                                                              color: "from-brand-500 to-pink-400" },
-    { icon: <FaProjectDiagram />, label: "Active Projects",  value: bookings.filter(b=>["Reviewing","Proposal Sent","In Progress"].includes(b.status)).length, color: "from-sky-500 to-cyan-400" },
-    { icon: <FaCheckCircle />,    label: "Completed",        value: bookings.filter(b=>b.status==="Completed").length,                              color: "from-teal-500 to-emerald-400" },
-    { icon: <FaClock />,          label: "Pending",          value: bookings.filter(b=>b.status==="Pending").length,                                color: "from-amber-500 to-orange-400" },
+    { icon: <FaClipboardList />,  label: "Total Requests",   value: bookings.length,                                                              color: "from-brand-500 to-pink-400" , description:"All submitted requests"},
+    { icon: <FaProjectDiagram />, label: "Active Projects",  value: bookings.filter(b=>["Reviewing","Proposal Sent","In Progress"].includes(b.status)).length, color: "from-sky-500 to-cyan-400" , description:"Currently in progress"},
+    { icon: <FaCheckCircle />,    label: "Completed",        value: bookings.filter(b=>b.status==="Completed").length,                              color: "from-teal-500 to-emerald-400" , description:"Successfully delivered"},
+    { icon: <FaClock />,          label: "Pending",          value: bookings.filter(b=>b.status==="Pending").length,                                color: "from-amber-500 to-orange-400", description:"Awaiting review"},
   ];
 
   if (loading) return (
@@ -191,6 +274,11 @@ document.body.removeChild(link);
               <div className={`stat-icon bg-gradient-to-br ${s.color} text-white`}>{s.icon}</div>
               <p className="text-3xl font-extrabold text-ink">{s.value}</p>
               <p className="text-ink-muted text-sm mt-1">{s.label}</p>
+              <p className="text-xs text-gray-500 mt-2">
+
+              {s.description}
+
+              </p>
             </motion.div>
           ))}
         </div>
@@ -217,6 +305,167 @@ document.body.removeChild(link);
                     <div>
                       <h4 className="font-bold text-ink">{b.serviceName}</h4>
                       <p className="text-ink-muted text-sm mt-1">{b.description}</p>
+                      {
+  b.referenceImages?.length > 0 && (
+
+    <div className="mt-6">
+
+      <h4 className="font-semibold text-lg mb-4">
+
+        Reference Files
+
+      </h4>
+
+      <div className="grid md:grid-cols-2 gap-4">
+
+        {
+
+          b.referenceImages.map((file,index)=>(
+
+            <div
+              key={index}
+              className="border rounded-xl bg-gray-50 p-4 flex flex-col gap-4"
+            >
+
+              {/* Preview */}
+
+              {
+
+                isReferenceImage(file)
+
+                ?
+
+                (
+
+                  <img
+
+                    src={`${BASE_URL}/uploads/booking-images/${file}`}
+
+                    alt={file}
+
+                    className="w-full h-48 rounded-lg border bg-white object-contain hover:scale-105 transition"
+
+                  />
+
+                )
+
+                :
+
+                (
+
+                  <div className="h-48 rounded-lg border bg-white flex items-center justify-center">
+
+                    {
+
+                      file.toLowerCase().endsWith(".pdf")
+
+                      ?
+
+                      <FaFilePdf className="text-red-500 text-7xl"/>
+
+                      :
+
+                      file.toLowerCase().endsWith(".txt")
+
+                      ?
+
+                      <FaFileText className="text-blue-500 text-7xl"/>
+
+                      :
+
+                      file.toLowerCase().endsWith(".doc")
+
+                      ||
+
+                      file.toLowerCase().endsWith(".docx")
+
+                      ?
+
+                      <FaFileWord className="text-blue-700 text-7xl"/>
+
+                      :
+
+                      <FaFileAlt className="text-gray-500 text-7xl"/>
+
+                    }
+
+                  </div>
+
+                )
+
+              }
+
+              {/* File Name */}
+
+              <div>
+
+                <p className="font-semibold break-all">
+
+                  {file}
+
+                </p>
+
+              </div>
+
+              {/* Buttons */}
+
+              <div className="flex gap-3">
+
+                {
+
+                  canPreviewReference(file)
+
+                  &&
+
+                  (
+
+                    <button
+
+                      onClick={() => openReferenceFile(file)}
+
+                      className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+
+                    >
+
+                      <FaEye/>
+
+                      View
+
+                    </button>
+
+                  )
+
+                }
+
+                <button
+
+                  onClick={() => downloadReferenceFile(file)}
+
+                  className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white flex items-center gap-2"
+
+                >
+
+                  <FaDownload/>
+
+                  Download
+
+                </button>
+
+              </div>
+
+            </div>
+
+          ))
+
+        }
+
+      </div>
+
+    </div>
+
+  )
+
+}
                     </div>
                     <span className={`badge ${statusBadge(b.status)} shrink-0`}>{b.status}</span>
                   </div>
@@ -227,40 +476,7 @@ document.body.removeChild(link);
                       <p className="text-ink-muted text-sm">{b.adminNotes}</p>
                     </div>
                   )}
-                  {
-  b.referenceImages?.length > 0 && (
-
-    <div className="mt-6">
-
-      <h4 className="font-semibold mb-3">
-        Reference Images
-      </h4>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-        {b.referenceImages.map((img, index) => (
-
-          <img
-            key={index}
-            src={`${BASE_URL}/uploads/booking-images/${img}`}
-            alt="Reference"
-            className="rounded-xl border h-32 w-full object-cover cursor-pointer hover:scale-105 transition"
-            onClick={() =>
-            window.open(
-            `${BASE_URL}/uploads/booking-images/${img}`,
-            "_blank"
-            )
-            }
-          />
-
-        ))}
-
-      </div>
-
-    </div>
-
-  )
-}
+                  
 
                 {b.projectFiles?.length>0 && (
 
@@ -289,13 +505,20 @@ Project Deliverables
 
     <p className="font-medium">
 
-    {file.fileName}
+    {displayFileName(file.fileName)}
 
     </p>
 
     <p className="text-xs text-gray-500">
 
     {file.mimeType || "Document"}
+
+    </p>
+    <p className="text-xs text-gray-400 mt-1">
+
+    Uploaded{" "}
+
+    {new Date(file.uploadedAt).toLocaleDateString("en-IN")}
 
     </p>
 

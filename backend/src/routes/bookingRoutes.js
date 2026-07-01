@@ -29,6 +29,7 @@ const {
 
 router.post(
  "/create",
+ uploadLimiter,
  protect,
  upload.array("images",5),
  createBooking
@@ -73,6 +74,7 @@ router.put(
 
 router.post(
 "/upload-file/:id",
+uploadLimiter,
 protect,
 authorize("admin"),
 projectUpload.single("file"),

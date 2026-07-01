@@ -53,7 +53,19 @@ exports.protect = async (req, res, next) => {
         // Check User Exists
         // ----------------------------------
 
-        const user = await User.findById(decoded.id);
+   const user = await User
+.findById(decoded.id)
+.select(
+
+"_id",
+
+"name",
+
+"email",
+
+"role"
+
+);
 
         if (!user) {
 

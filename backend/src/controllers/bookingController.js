@@ -2,22 +2,27 @@ const fs = require("fs");
 const path = require("path");
 
 const Booking = require("../models/Booking");
+const {
+
+  cleanString,
+
+  validateEmail,
+
+  validatePhone,
+
+  validateBudget
+
+} = require("../utils/validation");
+
+const validateObjectId = require("../utils/validateObjectId");
 const Notification = require("../models/Notification");
 
 // =======================================================
 // Helpers
 // =======================================================
 
-const sanitize = (value) => {
-  if (typeof value !== "string") return "";
-  return value.trim();
-};
 
-const emailRegex =
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const phoneRegex =
-  /^[6-9]\d{9}$/;
 
 const createNotification = async (
   user,
@@ -57,41 +62,101 @@ const createNotification = async (
 exports.createBooking = async (req, res) => {
 
   try {
+    // ======================================
+// Sanitize Inputs
+// ======================================
 
-    console.log("========== BOOKING REQUEST ==========");
-    console.log("BODY:", req.body);
-    console.log("FILES:", req.files);
-    console.log("=====================================");
+req.body.serviceName = cleanString(req.body.serviceName);
 
-    const serviceName =
-      sanitize(req.body.serviceName);
+req.body.companyName = cleanString(req.body.companyName);
 
-    const companyName =
-      sanitize(req.body.companyName);
+req.body.clientName = cleanString(req.body.clientName);
 
-    const clientName =
-      sanitize(req.body.clientName);
+req.body.email = cleanString(req.body.email);
 
-    const email =
-      sanitize(req.body.email).toLowerCase();
+req.body.phone = cleanString(req.body.phone);
 
-    const phone =
-      sanitize(req.body.phone);
+req.body.description = cleanString(req.body.description);
 
-    const budget =
-      sanitize(req.body.budget);
+// ======================================
+// Validate Email
+// ======================================
 
-    const description =
-      sanitize(req.body.description);
+if (!validateEmail(req.body.email)) {
+
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid email address."
+
+    });
+
+}
+
+// ======================================
+// Validate Phone
+// ======================================
+
+if (!validatePhone(req.body.phone)) {
+
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid phone number."
+
+    });
+
+}
+
+// ======================================
+// Validate Budget
+// ======================================
+
+if (!validateBudget(req.body.budget)) {
+
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid budget selected."
+
+    });
+
+}
+
+
+if (process.env.NODE_ENV === "development") {
+  console.log("========== BOOKING REQUEST ==========");
+  console.log("BODY:", req.body);
+  console.log("FILES:", req.files);
+  console.log("=====================================");
+}
+ const serviceName = req.body.serviceName;
+
+const companyName = req.body.companyName;
+
+const clientName = req.body.clientName;
+
+const email = req.body.email.toLowerCase();
+
+const phone = req.body.phone;
+
+const budget = req.body.budget;
+
+const description = req.body.description;
+  
 
     // =====================================
     // Uploaded Reference Images
     // =====================================
 
-    const referenceImages =
-      req.files
-        ? req.files.map(file => file.filename)
-        : [];
+    const referenceImages = req.files
+  ? req.files.map(file =>
+      cleanString(file.filename)
+    )
+  : [];
 
     // =====================================
     // Required Fields
@@ -121,123 +186,33 @@ exports.createBooking = async (req, res) => {
       });
 
     }
+// =====================================
+// Company & Client Name Validation
+// =====================================
 
-    // =====================================
-    // Email Validation
-    // =====================================
+if (companyName.length > 100) {
 
-    if (!emailRegex.test(email)) {
+  return res.status(400).json({
 
-      return res.status(400).json({
+    success: false,
 
-        success: false,
+    message: "Company name is too long."
 
-        message:
-          "Please enter a valid email."
+  });
 
-      });
+}
 
-    }
+if (clientName.length > 100) {
 
-    // =====================================
-    // Phone Validation
-    // =====================================
+  return res.status(400).json({
 
-    if (!phoneRegex.test(phone)) {
+    success: false,
 
-      return res.status(400).json({
+    message: "Client name is too long."
 
-        success: false,
+  });
 
-        message:
-          "Please enter a valid mobile number."
-
-      });
-
-    }
-
-    // =====================================
-    // Client Name Validation
-    // =====================================
-
-    if (
-
-      clientName.length < 3 ||
-
-      clientName.length > 60
-
-    ) {
-
-      return res.status(400).json({
-
-        success: false,
-
-        message:
-          "Client name must contain between 3 and 60 characters."
-
-      });
-
-    }
-
-    // =====================================
-    // Company Name Validation
-    // =====================================
-
-    if (
-
-      companyName.length > 100
-
-    ) {
-
-      return res.status(400).json({
-
-        success: false,
-
-        message:
-          "Company name is too long."
-
-      });
-
-    }
-
-    // =====================================
-    // Description Validation
-    // =====================================
-
-    if (
-
-      description.length < 10
-
-    ) {
-
-      return res.status(400).json({
-
-        success: false,
-
-        message:
-          "Description should contain at least 10 characters."
-
-      });
-
-    }
-
-    if (
-
-      description.length > 3000
-
-    ) {
-
-      return res.status(400).json({
-
-        success: false,
-
-        message:
-          "Description is too long."
-
-      });
-
-    }
-
+}
     // =====================================
     // Create Booking
     // =====================================
@@ -438,7 +413,17 @@ exports.getAllBookings = async (req, res) => {
 exports.getBookingById = async (req, res) => {
 
   try {
+    if (!validateObjectId(req.params.id)) {
 
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid Booking ID."
+
+    });
+
+}
     const booking = await Booking.findById(
 
       req.params.id
@@ -503,7 +488,17 @@ exports.getBookingById = async (req, res) => {
 exports.updateStatus = async (req, res) => {
 
   try {
+if (!validateObjectId(req.params.id)) {
 
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid Booking ID."
+
+    });
+
+}
     const booking = await Booking.findById(
       req.params.id
     );
@@ -536,8 +531,8 @@ exports.updateStatus = async (req, res) => {
 
     ];
 
-    const status =
-      sanitize(req.body.status);
+const status =
+  cleanString(req.body.status);
 
     if (!allowedStatus.includes(status)) {
 
@@ -612,7 +607,17 @@ exports.updateStatus = async (req, res) => {
 exports.updateAdminNotes = async (req, res) => {
 
   try {
+    if (!validateObjectId(req.params.id)) {
 
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid Booking ID."
+
+    });
+
+}
     const booking = await Booking.findById(
       req.params.id
     );
@@ -630,8 +635,14 @@ exports.updateAdminNotes = async (req, res) => {
 
     }
 
-    const notes =
-      sanitize(req.body.adminNotes);
+const notes =
+  cleanString(req.body.adminNotes);
+      if (notes.length > 1000) {
+  return res.status(400).json({
+    success: false,
+    message: "Admin notes are too long."
+  });
+}
 
     booking.adminNotes = notes;
 
@@ -697,14 +708,32 @@ exports.updateAdminNotes = async (req, res) => {
 exports.uploadProjectFile = async (req, res) => {
 
   try {
-      console.log("========== ADMIN FILE UPLOAD ==========");
-      console.log("Booking ID:", req.params.id);
-      console.log("BODY:", req.body);
-      console.log("FILE:", req.file);
-      console.log("======================================");
+      if (process.env.NODE_ENV === "development") {
+
+  console.log("========== ADMIN FILE UPLOAD ==========");
+
+  console.log("Booking ID:", req.params.id);
+
+  console.log("BODY:", req.body);
+
+  console.log("FILE:", req.file);
+
+  console.log("======================================");
+
+}
 
 
-      
+      if (!validateObjectId(req.params.id)) {
+
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid Booking ID."
+
+    });
+
+}
     const booking = await Booking.findById(
       req.params.id
     );
@@ -735,7 +764,7 @@ exports.uploadProjectFile = async (req, res) => {
 
     booking.projectFiles.push({
 
-      fileName: req.file.originalname,
+      fileName: cleanString(req.file.originalname),
 
       filePath: req.file.filename,
 
@@ -800,7 +829,17 @@ exports.uploadProjectFile = async (req, res) => {
 exports.deleteBooking = async (req, res) => {
 
   try {
+    if (!validateObjectId(req.params.id)) {
 
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid Booking ID."
+
+    });
+
+}
     const booking = await Booking.findById(
       req.params.id
     );
@@ -831,23 +870,27 @@ exports.deleteBooking = async (req, res) => {
 
         const imagePath = path.join(
 
-          __dirname,
+        __dirname,
 
-          "../../uploads",
+        "../../uploads/booking-images",
 
-          img
+        img
 
         );
+        try {
 
-        if (
+    if (fs.existsSync(imagePath)) {
 
-          fs.existsSync(imagePath)
+        fs.unlinkSync(imagePath);
 
-        ) {
+    }
 
-          fs.unlinkSync(imagePath);
+} catch (err) {
 
-        }
+    console.error(err);
+
+}
+  
 
       });
 
@@ -875,15 +918,19 @@ exports.deleteBooking = async (req, res) => {
 
         );
 
-        if (
+try {
 
-          fs.existsSync(filePath)
+    if (fs.existsSync(filePath)) {
 
-        ) {
+        fs.unlinkSync(filePath);
 
-          fs.unlinkSync(filePath);
+    }
 
-        }
+} catch (err) {
+
+    console.error(err);
+
+}
 
       });
 
@@ -941,7 +988,17 @@ exports.deleteProjectFile = async (req, res) => {
   try {
 
     const { bookingId, fileId } = req.params;
+    if (!validateObjectId(bookingId)) {
 
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid Booking ID."
+
+    });
+
+}
     const booking = await Booking.findById(bookingId);
 
     if (!booking) {
@@ -980,11 +1037,19 @@ exports.deleteProjectFile = async (req, res) => {
 
     );
 
-    if (fs.existsSync(fileLocation)) {
+    try{
 
-      fs.unlinkSync(fileLocation);
+if(fs.existsSync(fileLocation)){
 
-    }
+fs.unlinkSync(fileLocation);
+
+}
+
+}catch(err){
+
+console.error(err);
+
+}
 
     file.deleteOne();
 
@@ -1043,9 +1108,39 @@ exports.downloadProjectFile = async (req, res) => {
   try {
 
     const { bookingId, fileId } = req.params;
+    if (!validateObjectId(bookingId)) {
 
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid Booking ID."
+
+    });
+
+}
     const booking = await Booking.findById(bookingId);
+      // ======================================
+// Booking Ownership Check
+// ======================================
 
+if (
+
+    req.user.role !== "admin" &&
+
+    booking.user.toString() !== req.user._id.toString()
+
+) {
+
+    return res.status(403).json({
+
+        success: false,
+
+        message: "Access denied."
+
+    });
+
+}
     if (!booking) {
 
       return res.status(404).json({
@@ -1135,9 +1230,39 @@ exports.viewProjectFile = async (req, res) => {
   try {
 
     const { bookingId, fileId } = req.params;
+    if (!validateObjectId(bookingId)) {
 
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid Booking ID."
+
+    });
+
+}
     const booking = await Booking.findById(bookingId);
+    // ======================================
+// Booking Ownership Check
+// ======================================
 
+if (
+
+    req.user.role !== "admin" &&
+
+    booking.user.toString() !== req.user._id.toString()
+
+) {
+
+    return res.status(403).json({
+
+        success: false,
+
+        message: "Access denied."
+
+    });
+
+}
     if (!booking) {
 
       return res.status(404).json({

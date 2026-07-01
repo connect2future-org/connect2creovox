@@ -1,7 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
+const processImage = require("../utils/imageProcessor");
 // =====================================
 // Upload Folder
 // =====================================
@@ -12,7 +12,9 @@ const uploadDir = path.join(
 );
 
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+  fs.mkdirSync(uploadDir, {
+    recursive: true,
+  });
 }
 
 // =====================================
@@ -38,13 +40,10 @@ const storage = multer.diskStorage({
 
     cb(
       null,
-      Date.now() +
-      "-" +
-      name +
-      ext
+      `${Date.now()}-${name}${ext}`
     );
 
-  }
+  },
 
 });
 
@@ -56,56 +55,49 @@ const allowedExtensions = [
 
   ".jpg",
   ".jpeg",
-  ".png",
-  ".gif",
-  ".webp",
 
   ".pdf",
 
   ".doc",
   ".docx",
 
-  ".txt",
-
-  ".xls",
-  ".xlsx",
-
-  ".ppt",
-  ".pptx",
-
-  ".zip",
-  ".rar"
+  ".txt"
 
 ];
 
 // =====================================
-// File Filter
+// Filter
 // =====================================
 
 const fileFilter = (req, file, cb) => {
 
   const ext =
-    path.extname(file.originalname).toLowerCase();
+    path.extname(file.originalname)
+      .toLowerCase();
 
-  if (allowedExtensions.includes(ext)) {
+  if (!allowedExtensions.includes(ext)) {
 
-    return cb(null, true);
+    return cb(
+
+      new Error(
+
+        "Only JPG, PDF, DOC and TXT files are allowed."
+
+      )
+
+    );
 
   }
 
-  cb(
-    new Error(
-      "Unsupported file type."
-    )
-  );
+  cb(null, true);
 
 };
 
 // =====================================
-// Multer
+// Upload
 // =====================================
 
-module.exports = multer({
+const upload = multer({
 
   storage,
 
@@ -113,8 +105,42 @@ module.exports = multer({
 
   limits: {
 
-    fileSize: 20 * 1024 * 1024
+    fileSize: 10 * 1024 * 1024
 
   }
 
 });
+
+module.exports = {
+
+  array: (fieldName, maxCount) => [
+
+    upload.array(fieldName, maxCount),
+
+    async (req, res, next) => {
+
+      try {
+
+        if (req.files?.length) {
+
+          for (const file of req.files) {
+
+            await processImage(file.path);
+
+          }
+
+        }
+
+        next();
+
+      } catch (err) {
+
+        next(err);
+
+      }
+
+    }
+
+  ]
+
+};

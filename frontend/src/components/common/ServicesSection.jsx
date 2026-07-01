@@ -129,7 +129,7 @@ const ServicesSection = () => (
             <p  className="text-ink-muted text-sm leading-relaxed flex-grow">{s.desc}</p>
 
             <Link to={s.link}
-              className="mt-6 inline-flex items-center gap-2 text-brand-500 font-semibold text-sm group-hover:gap-3 transition-all"
+              className="mt-6 inline-flex items-center gap-2 text-brand-500 font-semibold text-sm group-hover:gap-2.5 transition-all"
             >
               Explore <FaArrowRight className="text-xs" />
             </Link>

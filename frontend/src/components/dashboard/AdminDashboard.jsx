@@ -13,13 +13,10 @@ import {
   FaSearch,
   FaEye,
   FaDownload,
-  FaTrash,
   FaFilePdf,
   FaFileWord,
-  FaFileExcel,
-  FaFilePowerpoint,
-  FaFileImage,
-  FaFileArchive
+  FaFileText,
+  FaFileImage
 } from "react-icons/fa";
 
 const BASE_URL =
@@ -31,6 +28,7 @@ const AdminDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   useEffect(() => {
     fetchBookings();
@@ -177,44 +175,22 @@ const AdminDashboard = () => {
     if (!confirmUpload) return;
 
 const allowedTypes = [
+  "image/jpeg",
 
-"application/pdf",
+  "application/pdf",
 
-"application/msword",
+  "application/msword",
 
-"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 
-"application/vnd.ms-excel",
-
-"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-
-"application/vnd.ms-powerpoint",
-
-"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-
-"text/plain",
-
-"application/zip",
-
-"application/x-rar-compressed",
-
-"image/jpeg",
-
-"image/png",
-
-"image/gif",
-
-"image/webp"
-
+  "text/plain"
 ];
 
     if (!allowedTypes.includes(file.type)) {
 
-      toast.error(
-
-        "Only PDF, JPG, PNG and ZIP files are allowed."
-
-      );
+  toast.error(
+  "Only JPG, PDF, DOC, DOCX and TXT files are allowed."
+);
 
       return;
 
@@ -224,13 +200,13 @@ const allowedTypes = [
 
       file.size >
 
-      20 * 1024 * 1024
+      10 * 1024 * 1024
 
     ) {
 
       toast.error(
 
-        "Maximum file size is 20 MB."
+        "Maximum file size is 10 MB."
 
       );
 
@@ -298,6 +274,12 @@ const allowedTypes = [
 
 const getExtension = (fileName = "") =>
   fileName.split(".").pop().toLowerCase();
+ 
+const displayFileName = (name = "") => {
+
+  return name.replace(/^\d+-/, "");
+
+};
 
 const getIcon = (fileName = "") => {
 
@@ -312,24 +294,12 @@ const getIcon = (fileName = "") => {
     case "docx":
       return <FaFileWord className="text-blue-600" />;
 
-    case "xls":
-    case "xlsx":
-      return <FaFileExcel className="text-green-600" />;
-
-    case "ppt":
-    case "pptx":
-      return <FaFilePowerpoint className="text-orange-500" />;
-
     case "jpg":
     case "jpeg":
-    case "png":
-    case "gif":
-    case "webp":
       return <FaFileImage className="text-pink-500" />;
 
-    case "zip":
-    case "rar":
-      return <FaFileArchive className="text-yellow-600" />;
+    case "txt":
+      return <FaFileText className="text-gray-600" />;
 
     default:
       return <FaFileAlt className="text-gray-500" />;
@@ -337,6 +307,25 @@ const getIcon = (fileName = "") => {
   }
 
 };
+
+
+
+const isImage = (file) => {
+
+  const ext = file
+    .split(".")
+    .pop()
+    .toLowerCase();
+
+  return [
+
+    "jpg",
+    "jpeg"
+
+  ].includes(ext);
+
+};
+
 
 const viewFile = (file) => {
 
@@ -366,6 +355,70 @@ const downloadFile = (file) => {
   document.body.removeChild(link);
 
 };
+
+
+// ======================================
+// Reference File Helpers
+// ======================================
+
+const getReferenceFileExtension = (file = "") => {
+
+  return file
+    .split(".")
+    .pop()
+    .toLowerCase();
+
+};
+
+const isReferenceImage = (file = "") => {
+
+  return [
+
+    "jpg",
+
+    "jpeg"
+
+  ].includes(
+
+    getReferenceFileExtension(file)
+
+  );
+
+};
+
+const canPreviewReference = (file = "") => {
+
+  return [
+
+    "jpg",
+
+    "jpeg",
+
+    "pdf",
+
+    "txt"
+
+  ].includes(
+
+    getReferenceFileExtension(file)
+
+  );
+
+};
+
+const openReferenceFile = (file) => {
+  window.open(
+    `${BASE_URL}/uploads/booking-images/${file}`,
+    "_blank"
+  );
+};
+
+const downloadReferenceFile = (file) => {
+  window.open(
+    `${BASE_URL}/uploads/booking-images/${file}`,
+    "_blank"
+  );
+};
   // ===========================
   // Search Filter
   // ===========================
@@ -375,26 +428,48 @@ const downloadFile = (file) => {
 
       const keyword =
         search.toLowerCase();
+if (
 
-      return (
+statusFilter !== "All" &&
 
-        booking.clientName
-          ?.toLowerCase()
-          .includes(keyword)
+booking.status !== statusFilter
 
-        ||
+){
 
-        booking.serviceName
-          ?.toLowerCase()
-          .includes(keyword)
+return false;
 
-        ||
+}
+return (
 
-        booking.email
-          ?.toLowerCase()
-          .includes(keyword)
+booking.clientName
+?.toLowerCase()
+.includes(keyword)
 
-      );
+||
+
+booking.companyName
+?.toLowerCase()
+.includes(keyword)
+
+||
+
+booking.serviceName
+?.toLowerCase()
+.includes(keyword)
+
+||
+
+booking.email
+?.toLowerCase()
+.includes(keyword)
+
+||
+
+booking.phone
+  ?.toString()
+  .includes(keyword.trim())
+
+);
 
     });
 
@@ -450,7 +525,7 @@ const downloadFile = (file) => {
 
           <p className="mt-5 text-gray-500">
 
-            Loading Dashboard...
+            Loading bookings and project data...
 
           </p>
 
@@ -499,7 +574,7 @@ const downloadFile = (file) => {
 
         <FaSyncAlt />
 
-        Refresh
+        Reload Bookings
 
       </button>
 
@@ -526,6 +601,9 @@ const downloadFile = (file) => {
           {totalRequests}
 
         </p>
+        <p className="text-sm text-gray-500 mt-2">
+    All service requests
+</p>
 
       </div>
 
@@ -544,6 +622,9 @@ const downloadFile = (file) => {
           {pendingRequests}
 
         </p>
+        <p className="text-sm text-gray-500 mt-2">
+    Awaiting review
+</p>
 
       </div>
 
@@ -562,6 +643,9 @@ const downloadFile = (file) => {
           {activeProjects}
 
         </p>
+        <p className="text-sm text-gray-500 mt-2">
+    Currently in progress
+</p>
 
       </div>
 
@@ -580,6 +664,9 @@ const downloadFile = (file) => {
           {completedProjects}
 
         </p>
+        <p className="text-sm text-gray-500 mt-2">
+  Successfully delivered
+</p>
 
       </div>
 
@@ -599,25 +686,45 @@ const downloadFile = (file) => {
 
         </h2>
 
-        <div className="relative w-full lg:w-96">
+              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
 
-          <FaSearch className="absolute left-4 top-4 text-gray-400" />
+  <select
+    value={statusFilter}
+    onChange={(e) => setStatusFilter(e.target.value)}
+    className="border rounded-xl px-4 py-3"
+  >
 
-          <input
+    <option>All</option>
 
-            type="text"
+    <option>Pending</option>
 
-            placeholder="Search client, email or service..."
+    <option>Reviewing</option>
 
-            value={search}
+    <option>Proposal Sent</option>
 
-            onChange={(e)=>setSearch(e.target.value)}
+    <option>In Progress</option>
 
-            className="w-full border rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:ring-2 focus:ring-pink-300"
+    <option>Completed</option>
 
-          />
+    <option>Rejected</option>
 
-        </div>
+  </select>
+
+  <div className="relative lg:w-96">
+
+    <FaSearch className="absolute left-4 top-4 text-gray-400" />
+
+    <input
+      type="text"
+      placeholder="Search by client, company, email, phone or service..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="w-full border rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:ring-2 focus:ring-pink-300"
+    />
+
+  </div>
+
+</div>
 
       </div>
 
@@ -633,13 +740,15 @@ const downloadFile = (file) => {
 
         <h2 className="text-2xl font-bold text-gray-700">
 
-          No Client Requests Found
+          Client bookings will appear here once users submit their first request.
 
         </h2>
 
         <p className="text-gray-500 mt-3">
 
-          Booking requests will appear here once clients submit them.
+          No client requests have been submitted yet.
+
+Once users book a service, their requests will appear here.
 
         </p>
 
@@ -741,6 +850,167 @@ const downloadFile = (file) => {
       <p className="text-gray-600 leading-7">
         {booking.description}
       </p>
+      {
+  booking.referenceImages?.length > 0 && (
+
+    <div className="mt-6">
+
+      <h4 className="font-semibold text-lg mb-4">
+
+        Reference Files
+
+      </h4>
+
+      <div className="grid md:grid-cols-2 gap-4">
+
+        {
+
+          booking.referenceImages.map((file,index)=>(
+
+            <div
+              key={index}
+              className="border rounded-xl bg-gray-50 p-4 flex flex-col gap-4"
+            >
+
+              {/* Preview */}
+
+              {
+
+                isReferenceImage(file)
+
+                ?
+
+                (
+
+                  <img
+
+                    src={`${BASE_URL}/uploads/booking-images/${file}`}
+
+                    alt={file}
+
+                    className="w-full h-48 rounded-lg border object-contain bg-white hover:scale-105 transition"
+
+                  />
+
+                )
+
+                :
+
+                (
+
+                  <div className="h-48 rounded-lg border bg-white flex items-center justify-center">
+
+                    {
+
+                      file.toLowerCase().endsWith(".pdf")
+
+                      ?
+
+                      <FaFilePdf className="text-red-500 text-7xl"/>
+
+                      :
+
+                      file.toLowerCase().endsWith(".txt")
+
+                      ?
+
+                      <FaFileText className="text-blue-500 text-7xl"/>
+
+                      :
+
+                      file.toLowerCase().endsWith(".doc")
+
+                      ||
+
+                      file.toLowerCase().endsWith(".docx")
+
+                      ?
+
+                      <FaFileWord className="text-blue-700 text-7xl"/>
+
+                      :
+
+                      <FaFileAlt className="text-gray-500 text-7xl"/>
+
+                    }
+
+                  </div>
+
+                )
+
+              }
+
+              {/* File Name */}
+
+              <div>
+
+                <p className="font-semibold break-all">
+
+                  {displayFileName(file)}
+
+                </p>
+
+              </div>
+
+              {/* Buttons */}
+
+              <div className="flex gap-3">
+
+                {
+
+                  canPreviewReference(file)
+
+                  &&
+
+                  (
+
+                    <button
+
+                      onClick={() => openReferenceFile(file)}
+
+                      className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+
+                    >
+
+                      <FaEye/>
+
+                      View
+
+                    </button>
+
+                  )
+
+                }
+
+                <button
+
+                  onClick={() => downloadReferenceFile(file)}
+
+                  className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white flex items-center gap-2"
+
+                >
+
+                  <FaDownload/>
+
+                  Download
+
+                </button>
+
+              </div>
+
+            </div>
+
+          ))
+
+        }
+
+      </div>
+
+    </div>
+
+  )
+
+}
 
     </div>
 
@@ -756,28 +1026,27 @@ const downloadFile = (file) => {
 
       </label>
 
-      <textarea
+        <div>
 
-        defaultValue={
-          booking.adminNotes || ""
-        }
+  <textarea
+    defaultValue={booking.adminNotes || ""}
+    maxLength={1000}
+    onBlur={(e) =>
+      updateNotes(
+        booking._id,
+        e.target.value
+      )
+    }
+    rows={4}
+    className="w-full border rounded-xl p-4"
+    placeholder="Write internal notes..."
+  />
 
-        onBlur={(e)=>
+<p className="text-xs text-gray-500 mt-2">
+  Maximum 1000 characters
+</p>
 
-          updateNotes(
-            booking._id,
-            e.target.value
-          )
-
-        }
-
-        rows={4}
-
-        className="w-full border rounded-xl p-4"
-
-        placeholder="Write internal notes..."
-
-      />
+</div>
 
     </div>
 
@@ -798,7 +1067,7 @@ const downloadFile = (file) => {
       <input
 
         type="file"
-
+          accept=".jpg,.jpeg,.pdf,.doc,.docx,.txt"
         onChange={(e)=>
 
           uploadFile(
@@ -814,28 +1083,15 @@ const downloadFile = (file) => {
         className="border rounded-xl p-3 w-full"
 
       />
+      <p className="text-xs text-gray-500 mt-2">
+  Allowed formats: JPG, PDF, DOC/DOCX, TXT • Maximum 10 MB
+</p>
 
     </div>
 
     {/* ======================
         Uploaded Files
     ====================== */}
-
-    {
-
-      booking.projectFiles?.length>0 &&
-
-      (
-
-      <div className="mt-6">
-
-        <h4 className="font-semibold mb-3">
-
-          Uploaded Files
-
-        </h4>
-
-        <div className="space-y-3">
 
 {
 booking.projectFiles?.length > 0 && (
@@ -865,15 +1121,30 @@ className="flex flex-col lg:flex-row lg:items-center lg:justify-between border r
 
 <p className="font-medium">
 
-{file.fileName}
+{displayFileName(file.fileName)}
 
 </p>
 
-<p className="text-sm text-gray-500">
+<div>
 
-{file.mimeType || "Document"}
+  <p className="text-sm text-gray-500">
 
-</p>
+    {file.mimeType || "Document"}
+
+  </p>
+
+  <p className="text-xs text-gray-400 mt-1">
+
+    Uploaded{" "}
+
+    {new Date(file.uploadedAt).toLocaleString("en-IN", {
+  dateStyle: "medium",
+  timeStyle: "short",
+})}
+
+  </p>
+
+</div>
 
 </div>
 
@@ -916,65 +1187,15 @@ Download
 )
 }
 
-        </div>
+        
 
-      </div>
+      
 
-      )
+      
 
-    }
+    
 
-    {/* ======================
-        Reference Images
-    ====================== */}
-
-    {
-
-      booking.referenceImages?.length>0 &&
-
-      (
-
-      <div className="mt-6">
-
-        <h4 className="font-semibold mb-3">
-
-          Reference Images
-
-        </h4>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-          {
-
-          booking.referenceImages.map(
-
-          (img,index)=>(
-
-        <img
-            src={`${BASE_URL}/uploads/booking-images/${img}`}
-        alt="Reference"
-        className="rounded-xl border object-cover h-32 w-full cursor-pointer hover:scale-105 transition"
-        onClick={()=>
-        window.open(
-        `${BASE_URL}/uploads/booking-images/${img}`,
-        "_blank"
-        )
-        }
-        />
-
-          )
-
-          )
-
-          }
-
-        </div>
-
-      </div>
-
-      )
-
-    }
+ 
 
   </div>
 
