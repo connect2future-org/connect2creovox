@@ -15,13 +15,15 @@ import {
   FaDownload,
   FaFilePdf,
   FaFileWord,
-  FaFileText,
-  FaFileImage
+  FaFileImage,
+  FaTrash,
 } from "react-icons/fa";
 
+
 const BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5000";
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+
 
 const AdminDashboard = () => {
 
@@ -272,152 +274,153 @@ const allowedTypes = [
 // File Helpers
 // ===========================
 
-const getExtension = (fileName = "") =>
-  fileName.split(".").pop().toLowerCase();
- 
-const displayFileName = (name = "") => {
 
-  return name.replace(/^\d+-/, "");
+const getIcon = (file) => {
+
+switch ((file.extension || "").toLowerCase()) {
+
+case "pdf":
+
+return <FaFilePdf className="text-red-500"/>;
+
+case "doc":
+
+case "docx":
+
+return <FaFileWord className="text-blue-600"/>;
+
+case "jpg":
+
+case "jpeg":
+
+case "png":
+
+return <FaFileImage className="text-pink-500"/>;
+
+case "txt":
+
+return <FaFileAlt className="text-gray-600 text-7xl"/>;
+
+default:
+
+return <FaFileAlt className="text-gray-500"/>;
+
+}
 
 };
-
-const getIcon = (fileName = "") => {
-
-  const ext = getExtension(fileName);
-
-  switch (ext) {
-
-    case "pdf":
-      return <FaFilePdf className="text-red-500" />;
-
-    case "doc":
-    case "docx":
-      return <FaFileWord className="text-blue-600" />;
-
-    case "jpg":
-    case "jpeg":
-      return <FaFileImage className="text-pink-500" />;
-
-    case "txt":
-      return <FaFileText className="text-gray-600" />;
-
-    default:
-      return <FaFileAlt className="text-gray-500" />;
-
-  }
-
-};
-
-
 
 const isImage = (file) => {
 
-  const ext = file
-    .split(".")
-    .pop()
-    .toLowerCase();
-
-  return [
-
-    "jpg",
-    "jpeg"
-
-  ].includes(ext);
+  return file.resourceType === "image";
 
 };
-
-
 const viewFile = (file) => {
 
   window.open(
 
-    `${BASE_URL}/uploads/project-files/${file.filePath}`,
+    file.url,
 
-    "_blank"
+    "_blank",
+
+    "noopener,noreferrer"
 
   );
 
 };
 
-const downloadFile = (file) => {
 
-  const link = document.createElement("a");
+const downloadFile = (bookingId, fileId) => {
 
-  link.href =
-    `${BASE_URL}/uploads/project-files/${file.filePath}`;
-
-  link.download = file.fileName;
-
-  document.body.appendChild(link);
-
-  link.click();
-
-  document.body.removeChild(link);
+  window.location.href =
+    `${BASE_URL}/api/bookings/file/download/${bookingId}/${fileId}`;
 
 };
-
 
 // ======================================
 // Reference File Helpers
 // ======================================
+const canPreviewReference = (file) => {
 
-const getReferenceFileExtension = (file = "") => {
+return [
 
-  return file
-    .split(".")
-    .pop()
-    .toLowerCase();
+"jpg",
 
-};
+"jpeg",
 
-const isReferenceImage = (file = "") => {
+"png",
 
-  return [
+"gif",
 
-    "jpg",
+"webp",
 
-    "jpeg"
+"pdf"
 
-  ].includes(
+].includes(
 
-    getReferenceFileExtension(file)
+(file.extension || "").toLowerCase()
 
-  );
+);
 
 };
 
-const canPreviewReference = (file = "") => {
-
-  return [
-
-    "jpg",
-
-    "jpeg",
-
-    "pdf",
-
-    "txt"
-
-  ].includes(
-
-    getReferenceFileExtension(file)
-
-  );
-
-};
 
 const openReferenceFile = (file) => {
-  window.open(
-    `${BASE_URL}/uploads/booking-images/${file}`,
-    "_blank"
-  );
-};
 
-const downloadReferenceFile = (file) => {
   window.open(
-    `${BASE_URL}/uploads/booking-images/${file}`,
-    "_blank"
+
+    file.url,
+
+    "_blank",
+
+    "noopener,noreferrer"
+
   );
+
+};
+const downloadReferenceFile = async (bookingId, file) => {
+
+  try {
+
+    const response = await api.get(
+
+      `/api/bookings/reference/download/${bookingId}/${encodeURIComponent(file.originalName)}`,
+
+      {
+
+        responseType: "blob"
+
+      }
+
+    );
+
+    const blob = new Blob([response.data]);
+
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+
+    link.download = file.originalName;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(url);
+
+  }
+
+  catch (err) {
+
+    console.error(err);
+
+    toast.error("Download failed.");
+
+  }
+
 };
   // ===========================
   // Search Filter
@@ -876,7 +879,8 @@ Once users book a service, their requests will appear here.
 
               {
 
-                isReferenceImage(file)
+                file.resourceType === "image" &&
+                file.extension !== "pdf"
 
                 ?
 
@@ -884,9 +888,9 @@ Once users book a service, their requests will appear here.
 
                   <img
 
-                    src={`${BASE_URL}/uploads/booking-images/${file}`}
+                    src={file.url}
 
-                    alt={file}
+                    alt={file.originalName}
 
                     className="w-full h-48 rounded-lg border object-contain bg-white hover:scale-105 transition"
 
@@ -898,41 +902,39 @@ Once users book a service, their requests will appear here.
 
                 (
 
-                  <div className="h-48 rounded-lg border bg-white flex items-center justify-center">
+                  <div className="h-48 flex items-center justify-center bg-white rounded-lg border">
 
-                    {
+                  {
 
-                      file.toLowerCase().endsWith(".pdf")
+                  file.extension==="pdf"
 
-                      ?
+                  ?
 
-                      <FaFilePdf className="text-red-500 text-7xl"/>
+                  <FaFilePdf className="text-red-500 text-7xl"/>
 
-                      :
+                  :
 
-                      file.toLowerCase().endsWith(".txt")
+                  file.extension==="doc"||
 
-                      ?
+                  file.extension==="docx"
 
-                      <FaFileText className="text-blue-500 text-7xl"/>
+                  ?
 
-                      :
+                  <FaFileWord className="text-blue-600 text-7xl"/>
 
-                      file.toLowerCase().endsWith(".doc")
+                  :
 
-                      ||
+                  file.extension==="txt"
 
-                      file.toLowerCase().endsWith(".docx")
+                  ?
 
-                      ?
+                  <FaFileAlt className="text-gray-600 text-7xl"/>
 
-                      <FaFileWord className="text-blue-700 text-7xl"/>
+                  :
 
-                      :
+                  <FaFileAlt className="text-gray-400 text-7xl"/>
 
-                      <FaFileAlt className="text-gray-500 text-7xl"/>
-
-                    }
+                  }
 
                   </div>
 
@@ -946,7 +948,7 @@ Once users book a service, their requests will appear here.
 
                 <p className="font-semibold break-all">
 
-                  {displayFileName(file)}
+                  {file.originalName}
 
                 </p>
 
@@ -956,35 +958,41 @@ Once users book a service, their requests will appear here.
 
               <div className="flex gap-3">
 
-                {
+                  {
+                    (
+                      canPreviewReference(file)
+                    ) && (
 
-                  canPreviewReference(file)
+                      <button
 
-                  &&
+                        onClick={() => openReferenceFile(file)}
 
-                  (
+                        className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
 
-                    <button
+                      >
 
-                      onClick={() => openReferenceFile(file)}
+                        <FaEye/>
 
-                      className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+                        View
 
-                    >
+                      </button>
 
-                      <FaEye/>
-
-                      View
-
-                    </button>
-
-                  )
-
-                }
+                    )
+                  }
 
                 <button
 
-                  onClick={() => downloadReferenceFile(file)}
+                  onClick={() =>
+
+                    downloadReferenceFile(
+
+                    booking._id,
+
+                    file
+
+                    )
+
+                    }
 
                   className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white flex items-center gap-2"
 
@@ -1104,7 +1112,7 @@ Uploaded Files
 
 </h4>
 
-<div className="space-y-3">
+<div className="grid md:grid-cols-2 gap-4">
 
 {booking.projectFiles.map((file,index)=>(
 
@@ -1115,32 +1123,37 @@ className="flex flex-col lg:flex-row lg:items-center lg:justify-between border r
 
 <div className="flex items-center gap-3">
 
-{getIcon(file.fileName)}
+{getIcon(file)}
 
 <div>
 
 <p className="font-medium">
 
-{displayFileName(file.fileName)}
+{file.originalName}
 
 </p>
 
 <div>
 
-  <p className="text-sm text-gray-500">
+<p className="text-xs text-gray-500">
 
-    {file.mimeType || "Document"}
+{file.extension.toUpperCase()}
 
-  </p>
+•
+
+{(file.size/1024).toFixed(1)} KB
+
+</p>
 
   <p className="text-xs text-gray-400 mt-1">
 
     Uploaded{" "}
-
-    {new Date(file.uploadedAt).toLocaleString("en-IN", {
-  dateStyle: "medium",
-  timeStyle: "short",
-})}
+    {file.uploadedAt
+      ? new Date(file.uploadedAt).toLocaleString("en-IN", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : "Unknown"}
 
   </p>
 
@@ -1164,14 +1177,11 @@ View
 </button>
 
 <button
-onClick={()=>downloadFile(file)}
-className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 flex items-center gap-2"
+  onClick={() => downloadFile(booking._id, file._id)}
+  className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 flex items-center gap-2"
 >
-
-<FaDownload />
-
-Download
-
+  <FaDownload />
+  Download
 </button>
 
 </div>

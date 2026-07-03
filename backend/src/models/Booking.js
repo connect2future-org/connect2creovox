@@ -83,11 +83,95 @@ budget: {
     maxlength: 2000
 },
 
-  referenceImages: [
-    {
-      type: String
-    }
-  ],
+referenceImages: [
+
+  {
+
+    originalName: {
+
+      type: String,
+
+      required: true
+
+    },
+
+    displayName: {
+
+      type: String,
+
+      required: true
+
+    },
+
+    extension: {
+
+      type: String,
+
+      required: true
+
+    },
+
+    mimeType: {
+
+      type: String,
+
+      required: true
+
+    },
+
+    size: {
+
+      type: Number,
+
+      required: true
+
+    },
+
+    url: {
+
+      type: String,
+
+      required: true,
+      trim: true
+
+    },
+
+publicId: {
+
+type: String,
+
+required: true,
+
+trim: true
+
+},
+
+    resourceType: {
+
+      type: String,
+
+      enum: [
+
+        "image",
+
+        "raw"
+
+      ],
+
+      required: true
+
+    },
+    uploadedAt: {
+
+  type: Date,
+
+  default: Date.now
+
+}
+
+  }
+
+],
 
   status: {
     type: String,
@@ -110,37 +194,86 @@ budget: {
 },
 projectFiles: [
 
-{
+  {
 
-fileName:{
+    originalName: {
 
-type:String,
+      type: String,
 
-required:true
+      required: true
+
+    },
+
+    displayName: {
+
+      type: String,
+
+      required: true
+
+    },
+
+    extension: {
+
+      type: String,
+
+      required: true
+
+    },
+
+    mimeType: {
+
+      type: String,
+
+      required: true
+
+    },
+
+    size: {
+
+      type: Number,
+
+      required: true
+
+    },
+
+    url: {
+
+      type: String,
+
+      required: true,
+      trim: true
+
+    },
+
+  publicId: {
+
+type: String,
+
+required: true,
+
+trim: true
 
 },
 
-filePath:{
+    resourceType: {
 
-type:String,
+      type: String,
 
-required:true
+      enum: ["image", "raw"],
 
-},
+      required: true
 
-fileSize:Number,
+    },
 
-mimeType:String,
+    uploadedAt: {
 
-uploadedAt:{
+      type: Date,
 
-type:Date,
+      default: Date.now
 
-default:Date.now
+    }
 
-}
-
-}
+  }
 
 ],
 },
@@ -150,7 +283,9 @@ default:Date.now
 );
 bookingSchema.index({
 
-user:1
+user:1,
+createdAt:-1
+
 
 });
 

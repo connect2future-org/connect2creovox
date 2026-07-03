@@ -22,7 +22,13 @@ const errorHandler =require("./src/middleware/errorHandler");
 
 
 // Security Headers
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: {
+      policy: "cross-origin",
+    },
+  })
+);
 
 app.use(compression());
 
@@ -97,9 +103,16 @@ app.use(
 // =====================================
 
 app.use(
-  "/uploads",
+  "/uploads/booking-images",
   express.static(
-    path.join(__dirname, "uploads")
+    path.join(__dirname, "uploads/booking-images")
+  )
+);
+
+app.use(
+  "/uploads/project-files",
+  express.static(
+    path.join(__dirname, "uploads/project-files")
   )
 );
 

@@ -105,35 +105,7 @@ api.interceptors.response.use(
 
     }
 
-    // ---------------------------
-    // Validation Error
-    // ---------------------------
-
-    else if (status === 400) {
-
-      toast.error(
-
-        error.response.data.message ||
-
-        "Invalid request."
-
-      );
-
-    }
-
-    // ---------------------------
-    // Server Error
-    // ---------------------------
-
-    else if (status >= 500) {
-
-      toast.error(
-
-        "Server error. Please try again later."
-
-      );
-
-    }
+    
 
     return Promise.reject(error);
 

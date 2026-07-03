@@ -631,11 +631,12 @@ const Contact = () => {
                       </option>
 
                       {[
-                        "Immediate",
-                        "Within 1 Month",
-                        "Within 3 Months",
-                        "Flexible",
-                      ].map((item) => (
+                      "ASAP",
+                      "1 Week",
+                      "2 Weeks",
+                      "1 Month",
+                      "Flexible",
+                    ].map((item) => (
 
                         <option key={item}>
 

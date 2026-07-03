@@ -29,9 +29,21 @@ const NotificationBell = () => {
     }
   };
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+useEffect(() => {
+  let mounted = true;
+
+  const load = async () => {
+    if (mounted) {
+      await fetchNotifications();
+    }
+  };
+
+  load();
+
+  return () => {
+    mounted = false;
+  };
+}, []);
 
   // ===========================
   // Close when clicked outside

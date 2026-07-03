@@ -1,7 +1,8 @@
-const fs = require("fs");
 const path = require("path");
-
+const streamifier = require("streamifier");
+const cloudinary = require("../config/cloudinary");
 const Booking = require("../models/Booking");
+const axios = require("axios");
 const {
 
   cleanString,
@@ -20,6 +21,38 @@ const Notification = require("../models/Notification");
 // =======================================================
 // Helpers
 // =======================================================
+
+const streamDownload = async (file, res) => {
+
+    const response = await axios({
+
+        url: file.url,
+
+        method: "GET",
+
+        responseType: "stream"
+
+    });
+
+    res.setHeader(
+
+        "Content-Type",
+
+        file.mimeType
+
+    );
+
+    res.setHeader(
+
+        "Content-Disposition",
+
+        `attachment; filename="${file.originalName}"`
+
+    );
+
+    response.data.pipe(res);
+
+};
 
 
 
@@ -55,6 +88,93 @@ const createNotification = async (
 
 };
 
+
+
+const ADMIN_EMAIL = "c2creovox_admin@gmail.com"; // Replace with your admin email
+
+const createAdminNotification = async (title, message) => {
+  try {
+    const User = require("../models/User");
+
+    const admin = await User.findOne({
+      email: ADMIN_EMAIL,
+      role: "admin",
+    });
+
+    if (!admin) return;
+
+    await Notification.create({
+      user: admin._id,
+      title,
+      message,
+    });
+  } catch (err) {
+    console.error("Admin Notification Error:", err.message);
+  }
+};
+
+
+
+// =======================================================
+// Upload Buffer to Cloudinary
+// =======================================================
+
+const uploadToCloudinary = (file) => {
+
+  return new Promise((resolve, reject) => {
+
+    const imageLikeTypes = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "application/pdf"
+];
+
+const resourceType = imageLikeTypes.includes(file.mimetype)
+  ? "image"
+  : "raw";
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+
+{
+    folder: "booking-files",
+
+    resource_type: resourceType,
+
+    use_filename: true,
+
+    unique_filename: false,
+
+    filename_override: file.originalname,
+
+    public_id:
+        Date.now() +
+        "-" +
+        path.basename(
+            file.originalname,
+            path.extname(file.originalname)
+        )
+},
+
+      (error, result) => {
+
+        if (error) return reject(error);
+
+        resolve(result);
+
+      }
+
+    );
+
+    streamifier
+      .createReadStream(file.buffer)
+      .pipe(uploadStream);
+
+  });
+
+};
 // =======================================================
 // CREATE BOOKING
 // =======================================================
@@ -62,7 +182,7 @@ const createNotification = async (
 exports.createBooking = async (req, res) => {
 
   try {
-    // ======================================
+// ======================================
 // Sanitize Inputs
 // ======================================
 
@@ -75,6 +195,8 @@ req.body.clientName = cleanString(req.body.clientName);
 req.body.email = cleanString(req.body.email);
 
 req.body.phone = cleanString(req.body.phone);
+
+req.body.budget = cleanString(req.body.budget);
 
 req.body.description = cleanString(req.body.description);
 
@@ -135,7 +257,7 @@ if (process.env.NODE_ENV === "development") {
 }
  const serviceName = req.body.serviceName;
 
-const companyName = req.body.companyName;
+const companyName = req.body.companyName || "";
 
 const clientName = req.body.clientName;
 
@@ -143,7 +265,7 @@ const email = req.body.email.toLowerCase();
 
 const phone = req.body.phone;
 
-const budget = req.body.budget;
+const budget = req.body.budget || "";
 
 const description = req.body.description;
   
@@ -151,12 +273,71 @@ const description = req.body.description;
     // =====================================
     // Uploaded Reference Images
     // =====================================
+// =====================================
+// Upload Reference Files to Cloudinary
+// =====================================
 
-    const referenceImages = req.files
-  ? req.files.map(file =>
-      cleanString(file.filename)
-    )
-  : [];
+const referenceImages = [];
+
+if (req.files && req.files.length > 0) {
+
+  for (const file of req.files) {
+
+    const result = await uploadToCloudinary(file);
+
+    const extension = path
+      .extname(file.originalname)
+      .replace(".", "")
+      .toLowerCase();
+
+    referenceImages.push({
+
+      originalName: cleanString(file.originalname),
+
+      displayName: cleanString(
+
+        path.basename(
+
+          file.originalname,
+
+          path.extname(file.originalname)
+
+        )
+
+      ),
+
+      extension,
+
+      mimeType: file.mimetype,
+
+      size: file.size,
+
+      url: result.secure_url,
+
+      publicId: result.public_id,
+
+      resourceType: result.resource_type
+
+    });
+
+  }
+
+}
+  // =====================================
+// Maximum Reference Files Check
+// =====================================
+
+if (referenceImages.length > 5) {
+
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Maximum 5 reference files are allowed."
+
+    });
+
+}
 
     // =====================================
     // Required Fields
@@ -213,6 +394,17 @@ if (clientName.length > 100) {
   });
 
 }
+if (description.length > 3000) {
+
+    return res.status(400).json({
+
+        success:false,
+
+        message:"Description is too long."
+
+    });
+
+}
     // =====================================
     // Create Booking
     // =====================================
@@ -259,6 +451,10 @@ if (clientName.length > 100) {
       `Your booking request for "${serviceName}" has been submitted successfully.`
 
     );
+    await createAdminNotification(
+  "New Booking Request",
+  `${booking.clientName} submitted a new booking for "${booking.serviceName}".`
+);
 
     return res.status(201).json({
 
@@ -355,8 +551,7 @@ exports.getMyBookings = async (req, res) => {
 exports.getAllBookings = async (req, res) => {
 
   try {
-
-    const bookings = await Booking.find()
+      const bookings = await Booking.find()
 
       .populate({
 
@@ -365,6 +560,8 @@ exports.getAllBookings = async (req, res) => {
         select: "name email role"
 
       })
+
+      .select("-__v")
 
       .sort({
 
@@ -424,7 +621,7 @@ exports.getBookingById = async (req, res) => {
     });
 
 }
-    const booking = await Booking.findById(
+const booking = await Booking.findById(
 
       req.params.id
 
@@ -436,7 +633,9 @@ exports.getBookingById = async (req, res) => {
 
         select: "name email role"
 
-      });
+      })
+
+      .select("-__v");
 
     if (!booking) {
 
@@ -637,6 +836,17 @@ exports.updateAdminNotes = async (req, res) => {
 
 const notes =
   cleanString(req.body.adminNotes);
+  if (!notes.trim()) {
+
+    return res.status(400).json({
+
+        success:false,
+
+        message:"Admin notes cannot be empty."
+
+    });
+
+}
       if (notes.length > 1000) {
   return res.status(400).json({
     success: false,
@@ -704,39 +914,27 @@ const notes =
 // =======================================================
 // UPLOAD PROJECT FILE (ADMIN)
 // =======================================================
+// =======================================================
+// UPLOAD PROJECT FILE (ADMIN)
+// =======================================================
 
 exports.uploadProjectFile = async (req, res) => {
 
   try {
-      if (process.env.NODE_ENV === "development") {
 
-  console.log("========== ADMIN FILE UPLOAD ==========");
+    if (!validateObjectId(req.params.id)) {
 
-  console.log("Booking ID:", req.params.id);
-
-  console.log("BODY:", req.body);
-
-  console.log("FILE:", req.file);
-
-  console.log("======================================");
-
-}
-
-
-      if (!validateObjectId(req.params.id)) {
-
-    return res.status(400).json({
+      return res.status(400).json({
 
         success: false,
 
         message: "Invalid Booking ID."
 
-    });
+      });
 
-}
-    const booking = await Booking.findById(
-      req.params.id
-    );
+    }
+
+    const booking = await Booking.findById(req.params.id);
 
     if (!booking) {
 
@@ -756,21 +954,74 @@ exports.uploadProjectFile = async (req, res) => {
 
         success: false,
 
-        message: "Please select a file to upload."
+        message: "Please select a file."
 
       });
 
     }
 
+    if (req.file.size > 20 * 1024 * 1024) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message: "Maximum file size is 20MB."
+
+      });
+
+    }
+
+    if (booking.projectFiles.length >= 20) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message: "Maximum project files reached."
+
+      });
+
+    }
+
+    // ==========================================
+    // Upload to Cloudinary
+    // ==========================================
+
+    const result = await uploadToCloudinary(req.file);
+
+    const extension = path
+      .extname(req.file.originalname)
+      .replace(".", "")
+      .toLowerCase();
+
     booking.projectFiles.push({
 
-      fileName: cleanString(req.file.originalname),
+      originalName: cleanString(req.file.originalname),
 
-      filePath: req.file.filename,
+      displayName: cleanString(
 
-      fileSize: req.file.size,
+        path.basename(
+
+          req.file.originalname,
+
+          path.extname(req.file.originalname)
+
+        )
+
+      ),
+
+      extension,
 
       mimeType: req.file.mimetype,
+
+      size: req.file.size,
+
+      url: result.secure_url,
+
+      publicId: result.public_id,
+
+      resourceType: result.resource_type,
 
       uploadedAt: new Date()
 
@@ -802,13 +1053,7 @@ exports.uploadProjectFile = async (req, res) => {
 
   catch (error) {
 
-    console.error(
-
-      "Upload Project File Error:",
-
-      error
-
-    );
+    console.error("Upload Project File Error:", error);
 
     return res.status(500).json({
 
@@ -821,7 +1066,6 @@ exports.uploadProjectFile = async (req, res) => {
   }
 
 };
-
 // =======================================================
 // DELETE BOOKING
 // =======================================================
@@ -860,81 +1104,77 @@ exports.deleteBooking = async (req, res) => {
     // Delete Reference Images
     // ---------------------------------
 
-    if (
+for (const file of booking.referenceImages) {
 
-      booking.referenceImages?.length
+    try {
 
-    ) {
+        await cloudinary.uploader.destroy(
 
-      booking.referenceImages.forEach((img) => {
+            file.publicId,
 
-        const imagePath = path.join(
+            {
 
-        __dirname,
+                resource_type:file.resourceType
 
-        "../../uploads/booking-images",
-
-        img
+            }
 
         );
-        try {
-
-    if (fs.existsSync(imagePath)) {
-
-        fs.unlinkSync(imagePath);
 
     }
 
-} catch (err) {
+ catch(err){
 
-    console.error(err);
+    console.error(
+
+        "Failed to delete:",
+
+        file.publicId,
+
+        err.message
+
+    );
 
 }
-  
 
-      });
+}
+
+for (const file of booking.projectFiles) {
+
+    try {
+
+        await cloudinary.uploader.destroy(
+
+            file.publicId,
+
+            {
+
+                resource_type:file.resourceType
+
+            }
+
+        );
 
     }
 
+  catch(err){
+
+    console.error(
+
+        "Failed to delete:",
+
+        file.publicId,
+
+        err.message
+
+    );
+
+}
+
+}
     // ---------------------------------
     // Delete Project Files
     // ---------------------------------
 
-    if (
-
-      booking.projectFiles?.length
-
-    ) {
-
-      booking.projectFiles.forEach((file) => {
-
-        const filePath = path.join(
-
-          __dirname,
-
-          "../../uploads/project-files",
-
-          file.filePath
-
-        );
-
-try {
-
-    if (fs.existsSync(filePath)) {
-
-        fs.unlinkSync(filePath);
-
-    }
-
-} catch (err) {
-
-    console.error(err);
-
-}
-
-      });
-
-    }
 
     await booking.deleteOne();
 
@@ -1026,30 +1266,35 @@ exports.deleteProjectFile = async (req, res) => {
       });
 
     }
+try {
 
-    const fileLocation = path.join(
+    await cloudinary.uploader.destroy(
 
-      __dirname,
+        file.publicId,
 
-      "../../uploads/project-files",
+        {
 
-      file.filePath
+            resource_type: file.resourceType
+
+        }
 
     );
 
-    try{
-
-if(fs.existsSync(fileLocation)){
-
-fs.unlinkSync(fileLocation);
-
 }
 
-}catch(err){
+catch(err){
 
-console.error(err);
+    console.error(
+
+        "Cloudinary Delete Error:",
+
+        err.message
+
+    );
 
 }
+  
+
 
     file.deleteOne();
 
@@ -1108,39 +1353,21 @@ exports.downloadProjectFile = async (req, res) => {
   try {
 
     const { bookingId, fileId } = req.params;
+
     if (!validateObjectId(bookingId)) {
 
-    return res.status(400).json({
+      return res.status(400).json({
 
         success: false,
 
         message: "Invalid Booking ID."
 
-    });
+      });
 
-}
+    }
+
     const booking = await Booking.findById(bookingId);
-      // ======================================
-// Booking Ownership Check
-// ======================================
 
-if (
-
-    req.user.role !== "admin" &&
-
-    booking.user.toString() !== req.user._id.toString()
-
-) {
-
-    return res.status(403).json({
-
-        success: false,
-
-        message: "Access denied."
-
-    });
-
-}
     if (!booking) {
 
       return res.status(404).json({
@@ -1148,6 +1375,24 @@ if (
         success: false,
 
         message: "Booking not found."
+
+      });
+
+    }
+
+    if (
+
+      req.user.role !== "admin" &&
+
+      booking.user.toString() !== req.user._id.toString()
+
+    ) {
+
+      return res.status(403).json({
+
+        success: false,
+
+        message: "Access denied."
 
       });
 
@@ -1167,47 +1412,13 @@ if (
 
     }
 
-    const fileLocation = path.join(
-
-      __dirname,
-
-      "../../uploads/project-files",
-
-      file.filePath
-
-    );
-
-    if (!fs.existsSync(fileLocation)) {
-
-      return res.status(404).json({
-
-        success: false,
-
-        message: "Physical file not found."
-
-      });
-
-    }
-
-    return res.download(
-
-      fileLocation,
-
-      file.fileName
-
-    );
+    return streamDownload(file, res);
 
   }
 
   catch (error) {
 
-    console.error(
-
-      "Download File Error:",
-
-      error
-
-    );
+    console.error("Download File Error:", error);
 
     return res.status(500).json({
 
@@ -1220,17 +1431,12 @@ if (
   }
 
 };
+exports.downloadReferenceFile = async (req,res)=>{
 
-// =======================================================
-// VIEW PROJECT FILE
-// =======================================================
+    try{
 
-exports.viewProjectFile = async (req, res) => {
-
-  try {
-
-    const { bookingId, fileId } = req.params;
-    if (!validateObjectId(bookingId)) {
+        const { bookingId,fileName } = req.params;
+        if (!validateObjectId(bookingId)) {
 
     return res.status(400).json({
 
@@ -1241,28 +1447,215 @@ exports.viewProjectFile = async (req, res) => {
     });
 
 }
-    const booking = await Booking.findById(bookingId);
-    // ======================================
-// Booking Ownership Check
-// ======================================
 
-if (
+        const booking = await Booking.findById(bookingId);
 
-    req.user.role !== "admin" &&
+        if(!booking){
 
-    booking.user.toString() !== req.user._id.toString()
+            return res.status(404).json({
 
-) {
+                success:false,
 
-    return res.status(403).json({
+                message:"Booking not found"
 
-        success: false,
+            });
 
-        message: "Access denied."
+        }
+
+        if(
+
+            req.user.role!=="admin" &&
+
+            booking.user.toString()!==req.user._id.toString()
+
+        ){
+
+            return res.status(403).json({
+
+                success:false,
+
+                message:"Access denied"
+
+            });
+
+        }
+const file = booking.referenceImages.find(
+
+file =>
+
+file.originalName===fileName ||
+
+file.displayName===fileName ||
+
+file.publicId===fileName
+
+);
+
+if (!file) {
+
+    return res.status(404).json({
+
+        success:false,
+
+        message:"Reference file not found."
 
     });
 
 }
+
+return streamDownload(file, res);
+        
+
+    }
+
+catch(err){
+
+    console.error(
+
+        "Download Reference Error:",
+
+        err
+
+    );
+
+    return res.status(500).json({
+
+        success:false,
+
+        message:"Unable to download"
+
+    });
+
+}
+
+};
+
+
+exports.viewReferenceFile = async (req,res)=>{
+
+    try{
+
+        const { bookingId,fileName } = req.params;
+        if (!validateObjectId(bookingId)) {
+
+    return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid Booking ID."
+
+    });
+
+}
+
+        const booking = await Booking.findById(bookingId);
+
+        if(!booking){
+
+            return res.status(404).json({
+
+                success:false,
+
+                message:"Booking not found"
+
+            });
+
+        }
+
+        if(
+
+            req.user.role!=="admin" &&
+
+            booking.user.toString()!==req.user._id.toString()
+
+        ){
+
+            return res.status(403).json({
+
+                success:false,
+
+                message:"Access denied"
+
+            });
+
+        }
+const file = booking.referenceImages.find(
+
+    f =>
+
+        f.originalName === fileName ||
+
+        f.displayName === fileName ||
+
+        f.publicId === fileName
+
+);
+
+if (!file) {
+
+    return res.status(404).json({
+
+        success:false,
+
+        message:"Reference file not found."
+
+    });
+
+}
+
+return res.redirect(file.url);
+
+    }
+
+catch(err){
+
+    console.error(
+
+        "View Reference Error:",
+
+        err
+
+    );
+
+    return res.status(500).json({
+
+        success:false,
+
+        message:"Unable to download"
+
+    });
+
+}
+
+};
+
+// =======================================================
+// VIEW PROJECT FILE
+// =======================================================
+// =======================================================
+// VIEW PROJECT FILE
+// =======================================================
+
+exports.viewProjectFile = async (req, res) => {
+
+  try {
+
+    const { bookingId, fileId } = req.params;
+
+    if (!validateObjectId(bookingId)) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message: "Invalid Booking ID."
+
+      });
+
+    }
+
+    const booking = await Booking.findById(bookingId);
+
     if (!booking) {
 
       return res.status(404).json({
@@ -1270,6 +1663,24 @@ if (
         success: false,
 
         message: "Booking not found."
+
+      });
+
+    }
+
+    if (
+
+      req.user.role !== "admin" &&
+
+      booking.user.toString() !== req.user._id.toString()
+
+    ) {
+
+      return res.status(403).json({
+
+        success: false,
+
+        message: "Access denied."
 
       });
 
@@ -1289,41 +1700,13 @@ if (
 
     }
 
-    const fileLocation = path.join(
-
-      __dirname,
-
-      "../../uploads/project-files",
-
-      file.filePath
-
-    );
-
-    if (!fs.existsSync(fileLocation)) {
-
-      return res.status(404).json({
-
-        success: false,
-
-        message: "Physical file not found."
-
-      });
-
-    }
-
-    return res.sendFile(fileLocation);
+    return res.redirect(file.url);
 
   }
 
   catch (error) {
 
-    console.error(
-
-      "View File Error:",
-
-      error
-
-    );
+    console.error("View File Error:", error);
 
     return res.status(500).json({
 

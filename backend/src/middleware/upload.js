@@ -123,11 +123,17 @@ module.exports = {
 
         if (req.files?.length) {
 
-          for (const file of req.files) {
+  for (const file of req.files) {
 
-            await processImage(file.path);
+    const ext = path.extname(file.filename).toLowerCase();
 
-          }
+    if (ext === ".jpg" || ext === ".jpeg") {
+
+        await processImage(file.path);
+
+    }
+
+}
 
         }
 

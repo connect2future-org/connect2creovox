@@ -67,13 +67,11 @@ const Login = () => {
       const success =
         await login(email, password);
 
-      if (success) {
+        if (success) {
 
-        toast.success("Login Successful");
+            navigate("/");
 
-        navigate("/");
-
-      }
+        }
 
     }
 

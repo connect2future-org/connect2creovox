@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -28,151 +33,129 @@ import AdminRoute from "./components/routes/AdminRoute";
 import AnimatedBackground from "./components/common/AnimatedBackground";
 import AnimatedMascots from "./components/common/AnimatedMascots";
 import MascotSpeech from "./components/common/MascotSpeech";
+
 import ScrollToTop from "./components/common/ScrollToTop";
 import ScrollToTopButton from "./components/common/ScrollToTopButton";
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+
+  const showMascots =
+  location.pathname === "/" ||
+  location.pathname === "/about";
 
   return (
+    <div className="relative min-h-screen flex flex-col overflow-hidden">
 
+      <ScrollToTop />
+
+      <AnimatedBackground />
+
+      <Navbar />
+
+      <main className="relative z-10 flex-grow">
+
+        <Routes>
+
+          {/* Public Routes */}
+
+          <Route path="/" element={<Home />} />
+
+          <Route path="/services" element={<Services />} />
+
+          <Route path="/services/:id" element={<ServiceDetail />} />
+
+          <Route path="/about" element={<About />} />
+
+          <Route path="/contact" element={<Contact />} />
+
+          <Route path="/pricing" element={<Pricing />} />
+
+          <Route path="/insights" element={<Insights />} />
+
+          <Route path="/login" element={<Login />} />
+
+          <Route path="/register" element={<Register />} />
+
+          {/* Protected User */}
+
+          <Route
+            path="/user-dashboard"
+            element={
+              <ProtectedRoute>
+                <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/book-service/:id"
+            element={
+              <ProtectedRoute>
+                <BookService />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Admin */}
+
+          <Route
+            path="/admin-dashboard"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+
+          {/* 404 */}
+
+          <Route path="*" element={<NotFound />} />
+
+        </Routes>
+
+      </main>
+
+      {/* Show mascots ONLY on Home */}
+
+            {showMascots && (
+            <>
+                <MascotSpeech />
+                <AnimatedMascots />
+            </>
+            )}
+
+      <Footer />
+
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+        }}
+      />
+
+    </div>
+  );
+}
+
+function App() {
+  return (
     <AuthProvider>
 
       <Router>
 
-        <div className="relative min-h-screen flex flex-col overflow-hidden">
-
-          <ScrollToTop />
-
-          <AnimatedBackground />
-
-          <Navbar />
-
-          <main className="relative z-10 flex-grow">
-
-            <Routes>
-
-              {/* Public Routes */}
-
-              <Route path="/" element={<Home />} />
-
-              <Route path="/services" element={<Services />} />
-
-              <Route path="/services/:id" element={<ServiceDetail />} />
-
-              <Route path="/about" element={<About />} />
-
-              <Route path="/contact" element={<Contact />} />
-
-              <Route path="/pricing" element={<Pricing />} />
-
-              <Route path="/insights" element={<Insights />} />
-
-              <Route path="/login" element={<Login />} />
-
-              <Route path="/register" element={<Register />} />
-
-              {/* Protected User */}
-
-              <Route
-
-                path="/user-dashboard"
-
-                element={
-
-                  <ProtectedRoute>
-
-                    <UserDashboard />
-
-                  </ProtectedRoute>
-
-                }
-
-              />
-
-              <Route
-
-                path="/book-service/:id"
-
-                element={
-
-                  <ProtectedRoute>
-
-                    <BookService />
-
-                  </ProtectedRoute>
-
-                }
-
-              />
-
-              {/* Protected Admin */}
-
-              <Route
-
-                path="/admin-dashboard"
-
-                element={
-
-                  <AdminRoute>
-
-                    <AdminDashboard />
-
-                  </AdminRoute>
-
-                }
-
-              />
-
-              {/* 404 */}
-
-              <Route
-
-                path="*"
-
-                element={<NotFound />}
-
-              />
-
-            </Routes>
-
-          </main>
-
-          <MascotSpeech />
-
-          <AnimatedMascots />
-
-          <Footer />
-
-          <Toaster
-
-            position="top-right"
-
-            toastOptions={{
-
-              duration: 3000,
-
-              style: {
-
-                background: "#363636",
-
-                color: "#fff",
-
-              },
-
-            }}
-
-          />
-
-        </div>
+        <AppContent />
 
         <ScrollToTopButton />
 
       </Router>
 
     </AuthProvider>
-
   );
-
 }
 
 export default App;

@@ -1,20 +1,10 @@
 const express = require("express");
-
 const router = express.Router();
 
-const upload =
-require("../middleware/upload");
-
-const {protect,authorize} =
-require("../middleware/auth");
-
-
-const projectUpload =
-require("../middleware/projectUpload");
-
+const upload = require("../middleware/cloudinaryUpload");
+const { protect, authorize } = require("../middleware/auth");
 
 const {
-
   createBooking,
   getMyBookings,
   getAllBookings,
@@ -23,62 +13,63 @@ const {
   uploadProjectFile,
   deleteProjectFile,
   downloadProjectFile,
-  viewProjectFile
-
+  viewProjectFile,
+  downloadReferenceFile,
+  viewReferenceFile,
 } = require("../controllers/bookingController");
 
+// =====================================
+// User Routes
+// =====================================
+
 router.post(
- "/create",
- uploadLimiter,
- protect,
- upload.array("images",5),
- createBooking
+  "/create",
+  protect,
+  upload.array("images", 5),
+  createBooking
 );
 
 router.get(
- "/my-bookings",
- protect,
- getMyBookings
+  "/my-bookings",
+  protect,
+  getMyBookings
 );
 
-
+// =====================================
+// Admin Routes
+// =====================================
 
 router.get(
- "/all",
- protect,
- authorize("admin"),
- getAllBookings
+  "/all",
+  protect,
+  authorize("admin"),
+  getAllBookings
 );
-
-
 
 router.put(
- "/status/:id",
- protect,
- authorize("admin"),
- updateStatus
+  "/status/:id",
+  protect,
+  authorize("admin"),
+  updateStatus
 );
-
-
-
 
 router.put(
- "/notes/:id",
- protect,
- authorize("admin"),
- updateAdminNotes
+  "/notes/:id",
+  protect,
+  authorize("admin"),
+  updateAdminNotes
 );
 
-
-
+// =====================================
+// Project Files
+// =====================================
 
 router.post(
-"/upload-file/:id",
-uploadLimiter,
-protect,
-authorize("admin"),
-projectUpload.single("file"),
-uploadProjectFile
+  "/upload-file/:id",
+  protect,
+  authorize("admin"),
+  upload.single("file"),
+  uploadProjectFile
 );
 
 router.get(
@@ -100,6 +91,20 @@ router.delete(
   deleteProjectFile
 );
 
+// =====================================
+// Reference Files
+// =====================================
 
+router.get(
+  "/reference/view/:bookingId/:fileName",
+  protect,
+  viewReferenceFile
+);
+
+router.get(
+  "/reference/download/:bookingId/:fileName",
+  protect,
+  downloadReferenceFile
+);
 
 module.exports = router;
