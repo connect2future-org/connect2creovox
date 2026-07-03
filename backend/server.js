@@ -74,23 +74,43 @@ app.use(limiter);
 console.log("MONGODB_URI =", process.env.MONGODB_URI);
 connectDB();
 
+const allowedOrigins = [
+
+  "http://localhost:5173",
+
+  "http://localhost:5174",
+
+  "https://luminous-salmiakki-064f96.netlify.app"
+
+];
+
 app.use(
 
-cors({
+  cors({
 
-origin:[
+    origin: function (origin, callback) {
 
-"http://localhost:5173",
+      // Allow requests without an Origin (Postman, Render health checks, etc.)
+      if (!origin) return callback(null, true);
 
-"https://YOUR-VERCEL-DOMAIN.vercel.app"
+      if (allowedOrigins.includes(origin)) {
 
-],
+        return callback(null, true);
 
-credentials:true
+      }
 
-})
+      return callback(new Error("Not allowed by CORS"));
+
+    },
+
+    credentials: true
+
+  })
 
 );
+
+
+
 app.use(express.json());
 app.use(
   express.urlencoded({
