@@ -18,7 +18,7 @@ const HeroSection = () => {
   ];
 
   return (
-    <section className="hero-bg relative min-h-screen flex items-center overflow-hidden">
+    <section className="hero-bg relative flex items-center overflow-hidden py-12 lg:min-h-screen lg:py-0">
 
       {/* Ambient blobs */}
       <div className="absolute top-0 right-0 w-[560px] h-[560px] rounded-full pointer-events-none"
@@ -26,7 +26,7 @@ const HeroSection = () => {
       <div className="absolute bottom-0 left-0 w-[380px] h-[380px] rounded-full pointer-events-none"
            style={{ background: "radial-gradient(circle, rgba(236,72,153,0.07) 0%, transparent 70%)" }} />
 
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-24 pb-14 w-full">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12 lg:py-20 w-full">
         <div className="grid lg:grid-cols-2 gap-14 xl:gap-20 items-center">
 
           {/* ── LEFT ── */}
@@ -103,7 +103,7 @@ const HeroSection = () => {
             animate="show"
             className="flex justify-center lg:justify-end"
           >
-            <div className="relative">
+            <div className="relative flex justify-center items-center">
               {/* Glow halo */}
               <div className="absolute inset-0 rounded-[28px] blur-3xl opacity-30 pointer-events-none"
                    style={{ background: "linear-gradient(135deg,#f9a8d4,#ec4899,#a855f7)" }} />
@@ -136,15 +136,16 @@ const HeroSection = () => {
       ease: "easeInOut",
     },
   }}
-  className="
-    absolute
-    top-20
-    -left-24
-    w-52
-    z-20
-    pointer-events-none
-    select-none
-  "
+            className="
+            absolute
+            top-16
+            -left-20
+            w-40
+            lg:w-52
+            z-20
+            pointer-events-none
+            select-none
+            "
 />
               <motion.img
                 src={creativeStudioCard}
@@ -154,17 +155,18 @@ const HeroSection = () => {
                     rotate:[0,1.5,0,-1.5,0]
                 }}
                 transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-                className="
-                relative
-                z-30
-                w-full
-                max-w-[400px]
-                xl:max-w-[440px]
-                rounded-[28px]
-                shadow-2xl
-                border
-                border-white/60
-                "
+                  className="
+                  relative
+                  z-30
+                  w-[340px]
+                  lg:w-full
+                  max-w-[400px]
+                  xl:max-w-[440px]
+                  rounded-[28px]
+                  shadow-2xl
+                  border
+                  border-white/60
+                  "
                 style={{ filter: "drop-shadow(0 32px 64px rgba(236,72,153,0.2))" }}
               />
             </div>
