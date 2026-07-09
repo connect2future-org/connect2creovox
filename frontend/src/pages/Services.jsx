@@ -18,7 +18,7 @@ const Services = () => {
 
   return (
     <div className="pt-20 min-h-screen" style={{ background: "#faf6f0" }}>
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12">
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center mb-14">

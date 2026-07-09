@@ -24,7 +24,7 @@ const Insights = () => {
   return (
     <div className="pt-28 bg-white">
 
-      <section className="py-20 text-center">
+      <section className="py-14 text-center">
 
         <h1 className="text-6xl font-bold">
 
@@ -42,7 +42,7 @@ const Insights = () => {
 
       </section>
 
-      <section className="pb-24">
+      <section className="pb-16">
 
         <div className="max-w-7xl mx-auto px-6">
 

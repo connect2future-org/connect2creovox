@@ -49,7 +49,7 @@ const ServiceDetail = () => {
 
   if (!service) {
     return (
-      <div className="pt-32 pb-20 text-center min-h-screen">
+      <div className="pt-24 pb-14 text-center min-h-screen">
         <h2 className="text-2xl font-bold text-gray-500">Service not found</h2>
         <Link to="/services" className="text-pink-500 hover:underline mt-4 inline-block">
           ← Back to Services

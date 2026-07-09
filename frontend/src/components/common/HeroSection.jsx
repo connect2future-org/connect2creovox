@@ -26,7 +26,7 @@ const HeroSection = () => {
       <div className="absolute bottom-0 left-0 w-[380px] h-[380px] rounded-full pointer-events-none"
            style={{ background: "radial-gradient(circle, rgba(236,72,153,0.07) 0%, transparent 70%)" }} />
 
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-28 pb-20 w-full">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-24 pb-14 w-full">
         <div className="grid lg:grid-cols-2 gap-14 xl:gap-20 items-center">
 
           {/* ── LEFT ── */}

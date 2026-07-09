@@ -184,7 +184,7 @@ const allowedExtensions = [
   const labelCls = "block text-sm font-semibold text-ink mb-2";
 
   return (
-    <div className="min-h-screen pt-24 pb-20" style={{ background: "#faf6f0" }}>
+    <div className="min-h-screen pt-20 pb-14" style={{ background: "#faf6f0" }}>
       <div className="max-w-2xl mx-auto px-5 sm:px-8">
         <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
 
