@@ -43,7 +43,7 @@ const containerV = { hidden: {}, show: { transition: { staggerChildren: 0.12 } }
 const itemV = { hidden: { opacity: 0, y: 32 }, show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" } } };
 
 const ServicesSection = () => (
-  <section className="section bg-white relative overflow-hidden">
+  <section className="section bg-white relative">
     
     {/* subtle blobs */}
     <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-brand-100 blur-3xl opacity-40 pointer-events-none" />
@@ -55,11 +55,10 @@ const ServicesSection = () => (
       <motion.div
         initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }} viewport={{ once: true }}
-        className="text-center mb-16 max-w-3xl mx-auto"
-      >
+        className="text-center mb-16 max-w-3xl mx-auto overflow-visible">
           <div className="flex justify-center mb-8">
 
-            <div className="relative inline-flex items-center justify-center">
+            <div className="relative inline-flex items-center justify-center overflow-visible">
 
               <SectionPeep
                 size={175}

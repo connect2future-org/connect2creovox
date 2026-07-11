@@ -5,8 +5,6 @@ import { FaArrowRight, FaPaintBrush, FaExpandArrowsAlt, FaClock } from "react-ic
 import creativeStudioCard from "../../assets/creative-studio-card.png";
 import peepingMale from "../../assets/characters/peeping_male.png";
 
-
-
 const fadeLeft  = { hidden: { opacity: 0, x: -40 }, show: { opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut" } } };
 const fadeRight = { hidden: { opacity: 0, x:  50 }, show: { opacity: 1, x: 0, transition: { duration: 0.9, ease: "easeOut" } } };
 
@@ -18,7 +16,7 @@ const HeroSection = () => {
   ];
 
   return (
-    <section className="hero-bg relative flex items-center overflow-hidden py-12 lg:min-h-screen lg:py-0">
+    <section className="hero-bg relative flex items-center overflow-x-hidden overflow-y-visible pt-24 lg:pt-16 pb-8 sm:pb-12 lg:py-0">
 
       {/* Ambient blobs */}
       <div className="absolute top-0 right-0 w-[560px] h-[560px] rounded-full pointer-events-none"
@@ -103,50 +101,48 @@ const HeroSection = () => {
             animate="show"
             className="flex justify-center lg:justify-end"
           >
-            <div className="relative flex justify-center items-center">
-              {/* Glow halo */}
+            {/* Wrapper: ensures mascot is always attached to card */}
+            <div className="relative inline-block mt-6 sm:mt-8 lg:mt-0">
+              {/* Glow halo – now scoped to the wrapper */}
               <div className="absolute inset-0 rounded-[28px] blur-3xl opacity-30 pointer-events-none"
                    style={{ background: "linear-gradient(135deg,#f9a8d4,#ec4899,#a855f7)" }} />
-              {/* Peeping Mascot */}
 
-<motion.img
-  src={peepingMale}
-  alt="Mascot"
-  initial={{
-    opacity: 0,
-    x: 30,
-  }}
-  animate={{
-    opacity: 1,
-    x: 0,
-    y: [0, -8, 0],
-    rotate: [0, 2, -2, 0],
-  }}
-  transition={{
-    duration: 0.8,
-    delay: 0.5,
-    y: {
-      duration: 3,
-      repeat: Infinity,
-      ease: "easeInOut",
-    },
-    rotate: {
-      duration: 3,
-      repeat: Infinity,
-      ease: "easeInOut",
-    },
-  }}
-            className="
-            absolute
-            top-16
-            -left-20
-            w-40
-            lg:w-52
-            z-20
-            pointer-events-none
-            select-none
-            "
-/>
+              {/* Peeping Mascot – positioned relative to the wrapper (card) */}
+              <motion.img
+                src={peepingMale}
+                alt="Mascot"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                  y: [0, -8, 0],
+                  rotate: [0, 2, -2, 0],
+                }}
+                transition={{
+                  duration: 0.8,
+                  delay: 0.5,
+                  y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                  rotate: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                }}
+                className="
+                  absolute
+                  top-1/2 lg:top-[35%]
+                  -translate-y-1/2 lg:-translate-y-[35%]
+                  -left-0
+                  lg:-left-24
+                  translate-x-[-20%]
+                  sm:translate-x-[-25%]
+                  lg:translate-x-0
+                  w-[100px]
+                  sm:w-[110px]
+                  lg:w-52
+                  z-20
+                  pointer-events-none
+                  select-none
+                "
+              />
+
+              {/* Creative Studio Card */}
               <motion.img
                 src={creativeStudioCard}
                 alt="Creative Studio – Connect2Creovox"
@@ -155,10 +151,13 @@ const HeroSection = () => {
                     rotate:[0,1.5,0,-1.5,0]
                 }}
                 transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-                  className="
+                className="
                   relative
                   z-30
-                  w-[340px]
+                  block
+                  w-[200px]
+                  sm:w-[240px]
+                  md:w-[270px]
                   lg:w-full
                   max-w-[400px]
                   xl:max-w-[440px]
@@ -166,7 +165,7 @@ const HeroSection = () => {
                   shadow-2xl
                   border
                   border-white/60
-                  "
+                "
                 style={{ filter: "drop-shadow(0 32px 64px rgba(236,72,153,0.2))" }}
               />
             </div>
