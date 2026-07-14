@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   useLocation,
+  Navigate,   // ✅ imported
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
@@ -76,6 +77,9 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
 
           <Route path="/register" element={<Register />} />
+
+          {/* Franchise redirect */}
+          <Route path="/franchise" element={<Navigate to="/services/franchise-modules" replace />} />
 
           {/* Protected User */}
 

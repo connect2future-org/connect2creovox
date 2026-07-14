@@ -14,7 +14,10 @@ const Services = () => {
     setActive(categoryMap[searchParams.get("category")] || "All Services");
   }, [searchParams]);
 
-  const filtered = active === "All Services" ? services : services.filter(s => s.category === active);
+  // Only the filtering logic changes
+const filtered = active === "All Services" 
+  ? services.filter(s => !s.isHidden) 
+  : services.filter(s => s.category === active && !s.isHidden);
 
   return (
     <div className="pt-20 min-h-screen" style={{ background: "#faf6f0" }}>

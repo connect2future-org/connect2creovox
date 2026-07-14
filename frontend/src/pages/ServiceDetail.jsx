@@ -4,17 +4,19 @@ import { motion } from 'framer-motion';
 import {
   FaArrowLeft, FaCheckCircle, FaChevronLeft, FaChevronRight,
   FaWhatsapp, FaEye, FaMobileAlt, FaMoneyBillWave, FaMapMarkerAlt,
+  FaStar, FaClipboardList, FaPalette, FaUsers, FaBullhorn, FaGlobe,
+  FaRocket, FaCog, FaLightbulb, FaChartLine, FaHandshake
 } from 'react-icons/fa';
 import {
-  FaCar, FaBus, FaBuilding, FaGlobe, FaCode,
-  FaShoppingCart, FaBullhorn, FaDatabase, FaUsers, FaMobile,
+  FaCar, FaBus, FaBuilding, FaGlobe as FaGlobeSolid, FaCode,
+  FaShoppingCart, FaBullhorn as FaBullhornSolid, FaDatabase, FaUsers as FaUsersSolid, FaMobile,
   FaFilm, FaWifi, FaTv, FaTint,
 } from 'react-icons/fa';
 import { services } from '../data/servicesData';
 
 const iconMap = {
-  FaCar, FaBus, FaMobileAlt, FaBuilding, FaGlobe, FaCode,
-  FaShoppingCart, FaBullhorn, FaDatabase, FaUsers, FaMobile,
+  FaCar, FaBus, FaMobileAlt, FaBuilding, FaGlobe: FaGlobeSolid, FaCode,
+  FaShoppingCart, FaBullhorn: FaBullhornSolid, FaDatabase, FaUsers: FaUsersSolid, FaMobile,
   FaFilm, FaWifi, FaTv, FaTint,
 };
 
@@ -28,7 +30,31 @@ const highlightIconMap = {
   'Zone Targeting': FaMapMarkerAlt,
   'Flexible Duration': FaMoneyBillWave,
   'High Impressions': FaEye,
+  'End-to-End Franchise Solutions': FaRocket,
+  'Consistent Brand Identity': FaPalette,
+  'Scalable & Customizable': FaCog,
+  'Dedicated Ongoing Support': FaHandshake,
 };
+
+// Process steps for franchise
+const franchiseProcessSteps = [
+  { title: 'Business Consultation', description: 'We discuss your goals, assess your current brand, and understand your franchise vision.' },
+  { title: 'Brand Strategy Planning', description: 'We develop a comprehensive brand strategy that aligns with your business objectives and market positioning.' },
+  { title: 'Identity & Documentation', description: 'We create unified logos, brand guidelines, and complete franchise documentation for consistent operations.' },
+  { title: 'Design & Marketing Assets', description: 'We design all necessary marketing collateral, store branding, and promotional materials.' },
+  { title: 'Digital Presence Setup', description: 'We establish your professional website, social media, and online visibility for every location.' },
+  { title: 'Launch & Ongoing Support', description: 'We assist with the franchise launch and provide continuous brand management and expansion support.' },
+];
+
+// Why Choose items
+const whyChooseItems = [
+  { icon: FaRocket, title: 'End-to-End Solutions', description: 'Complete franchise branding and support from strategy to launch and beyond.' },
+  { icon: FaUsers, title: 'Experienced Team', description: 'Our creative and technical experts have deep experience in franchise development.' },
+  { icon: FaPalette, title: 'Consistent Branding', description: 'We ensure your brand looks and feels the same across every single outlet.' },
+  { icon: FaChartLine, title: 'Customized Strategies', description: 'Tailored marketing and branding approaches for your specific industry and audience.' },
+  { icon: FaGlobe, title: 'Scalable Solutions', description: 'Our services grow with your franchise network, from a single location to hundreds.' },
+  { icon: FaHandshake, title: 'Dedicated Support', description: 'Ongoing consultation and support to keep your brand fresh and competitive.' },
+];
 
 const ServiceDetail = () => {
   const { id } = useParams();
@@ -58,9 +84,23 @@ const ServiceDetail = () => {
     );
   }
 
-  const Icon = iconMap[service.iconName] || FaGlobe;
+  const Icon = iconMap[service.iconName] || FaGlobeSolid;
   const isCustom = service.price === 'Custom Quote';
   const whatsappMsg = encodeURIComponent(`Hi, I'm interested in your ${service.title} service. Please share more details.`);
+
+  // Determine if this is the franchise service
+  const isFranchise = service.id === 'franchise-modules';
+
+  // Parse features for franchise
+  let franchiseFeatures = [];
+  let whyChooseText = '';
+  let processText = '';
+  if (isFranchise) {
+    const allFeatures = service.features || [];
+    franchiseFeatures = allFeatures.filter(f => !f.startsWith('Why Choose') && !f.startsWith('Our Franchise'));
+    whyChooseText = allFeatures.find(f => f.startsWith('Why Choose'));
+    processText = allFeatures.find(f => f.startsWith('Our Franchise'));
+  }
 
   return (
     <div className="pt-24 pb-20 min-h-screen" style={{ background: '#fffaf5' }}>
@@ -75,6 +115,7 @@ const ServiceDetail = () => {
           Back to Services
         </button>
 
+        {/* Top Grid – Image + Details (unchanged for all services) */}
         <div className="grid lg:grid-cols-2 gap-10">
 
           {/* LEFT – Image Slider */}
@@ -96,10 +137,8 @@ const ServiceDetail = () => {
                   src={src}
                   alt={service.title}
                   className={`absolute inset-0 w-full h-full object-contain bg-white p-4 transition-opacity duration-700 ${
- i === currentImg
- ? "opacity-100"
- : "opacity-0"
-}`}
+                    i === currentImg ? 'opacity-100' : 'opacity-0'
+                  }`}
                 />
               ))}
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -183,18 +222,20 @@ const ServiceDetail = () => {
               <p className="text-gray-600 text-sm leading-relaxed">{service.about}</p>
             </div>
 
-            {/* Key Features */}
-            <div className="bg-white rounded-2xl p-5 border border-pink-50 shadow-sm">
-              <h3 className="font-bold text-gray-900 mb-3">Key Features</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {(service.features || []).map((f, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                    <FaCheckCircle className="text-pink-500 shrink-0" />
-                    {f}
-                  </div>
-                ))}
+            {/* Key Features – Hidden for franchise (we'll render it below) */}
+            {!isFranchise && (
+              <div className="bg-white rounded-2xl p-5 border border-pink-50 shadow-sm">
+                <h3 className="font-bold text-gray-900 mb-3">Key Features</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {(service.features || []).map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                      <FaCheckCircle className="text-pink-500 shrink-0" />
+                      {f}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Pricing card + CTA */}
             <div className="bg-white rounded-2xl p-5 border border-pink-50 shadow-sm">
@@ -208,26 +249,12 @@ const ServiceDetail = () => {
                 </div>
                 <div className="flex flex-col gap-2">
                   <Link
-  to={`/book-service/${service.id}`}
-  className="
-  gradient-bg
-  text-white
-  px-6
-  py-2.5
-  rounded-xl
-  font-semibold
-  hover:opacity-90
-  transition
-  text-center
-  text-sm
-  "
-  style={{
-    background:
-      "linear-gradient(135deg,#ec4899,#db2777)"
-  }}
->
-  Book Service
-</Link>
+                    to={`/book-service/${service.id}`}
+                    className="gradient-bg text-white px-6 py-2.5 rounded-xl font-semibold hover:opacity-90 transition text-center text-sm"
+                    style={{ background: 'linear-gradient(135deg,#ec4899,#db2777)' }}
+                  >
+                    Book Service
+                  </Link>
                   <a
                     href={`https://wa.me/919540944463?text=${whatsappMsg}`}
                     target="_blank"
@@ -242,7 +269,36 @@ const ServiceDetail = () => {
           </motion.div>
         </div>
 
-        {/* Gallery */}
+        {/* ── FRANCHISE FULL-WIDTH SECTIONS ── */}
+        {isFranchise && (
+          <div className="mt-14 space-y-10">
+            {/* 1. Key Features – Full-width landscape card */}
+            <div className="bg-white rounded-2xl p-6 border border-pink-50 shadow-sm w-full">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Key Features</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {franchiseFeatures.map((f, i) => {
+                  const [title, ...descParts] = f.split('–');
+                  const description = descParts.join('–').trim();
+                  return (
+                    <div key={i} className="flex items-start gap-3">
+                      <FaCheckCircle className="text-pink-500 shrink-0 mt-1" />
+                      <div>
+                        <h4 className="font-semibold text-gray-800 text-sm">{title.trim()}</h4>
+                        {description && (
+                          <p className="text-gray-500 text-xs leading-relaxed mt-0.5">{description}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+          
+          </div>
+        )}
+
+        {/* Gallery – remains full-width for all */}
         {service.gallery && service.gallery.length > 0 && (
           <div className="mt-14">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Gallery</h2>
@@ -263,7 +319,7 @@ const ServiceDetail = () => {
           </div>
         )}
 
-        {/* Bottom CTA Banner */}
+        {/* Bottom CTA Banner – unchanged */}
         <div className="mt-14 rounded-3xl p-8 flex flex-col sm:flex-row items-center justify-between gap-4"
           style={{ background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)' }}>
           <div>
@@ -272,21 +328,11 @@ const ServiceDetail = () => {
           </div>
           <div className="flex gap-3 flex-wrap">
             <Link
-  to={`/book-service/${service.id}`}
-  className="
-  bg-white
-  text-pink-600
-  px-6
-  py-2.5
-  rounded-xl
-  font-semibold
-  hover:bg-pink-50
-  transition
-  text-sm
-  "
->
-  Book Service
-</Link>
+              to={`/book-service/${service.id}`}
+              className="bg-white text-pink-600 px-6 py-2.5 rounded-xl font-semibold hover:bg-pink-50 transition text-sm"
+            >
+              Book Service
+            </Link>
             <a
               href={`https://wa.me/919540944463?text=${whatsappMsg}`}
               target="_blank"

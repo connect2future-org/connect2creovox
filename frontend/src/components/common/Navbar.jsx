@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthContext } from "../../context/AuthContext";
-import { FaBars, FaTimes, FaChevronDown } from "react-icons/fa";
+import { FaBars, FaTimes } from "react-icons/fa";
 import { MdDashboard, MdLogout, MdLogin, MdPersonAdd } from "react-icons/md";
 import Logo from "./Logo";
 import NotificationBell from "./NotificationBell";
@@ -27,22 +27,32 @@ const Navbar = () => {
   const links = [
     { name: "Home",     path: "/" },
     { name: "Services", path: "/services" },
+    { name: "Franchise", path: "/franchise" },
     { name: "About",    path: "/about" },
     { name: "Contact",  path: "/contact" },
   ];
 
-  const isActive = (p) => p === "/" ? location.pathname === "/" : location.pathname.startsWith(p);
+  const isActive = (p) => {
+    if (p === "/") return location.pathname === "/";
+    if (p === "/franchise") {
+      return location.pathname.startsWith("/services/franchise-modules");
+    }
+    if (location.pathname.startsWith("/services/franchise-modules")) return false;
+    return location.pathname.startsWith(p);
+  };
 
   return (
     <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-400 ${scrolled ? "navbar-blur" : "bg-white/90 backdrop-blur-md"}`}>
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
-        <div className="flex items-center justify-between h-[82px]">
+        <div className="flex items-center justify-between h-[72px] md:h-[82px]">
 
-          {/* ── Logo ── */}
-          <Logo />
+          {/* ── Logo (left) ── */}
+          <div className="flex-shrink-0 flex items-center">
+            <Logo className="h-10 md:h-12 lg:h-14 w-auto" />
+          </div>
 
-          {/* ── Desktop links ── */}
-          <nav className="hidden lg:flex items-center gap-7">
+          {/* ── Desktop links (center) ── */}
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 mx-4">
             {links.map((l) => (
               <Link
                 key={l.name}
@@ -54,29 +64,33 @@ const Navbar = () => {
             ))}
           </nav>
 
-          {/* ── Desktop auth ── */}
-          <div className="hidden lg:flex items-center gap-3">
+          {/* ── Desktop auth (right) ── */}
+          <div className="hidden lg:flex items-center gap-2">
             {user ? (
               <>
                 <NotificationBell />
                 <Link
                   to={user.role === "admin" ? "/admin-dashboard" : "/user-dashboard"}
-                  className="btn btn-ghost text-sm px-4 py-2 flex items-center gap-2"
+                  className="btn btn-ghost text-sm px-3 py-2 flex items-center gap-1"
                 >
                   <MdDashboard className="text-base" />
                   Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="btn btn-primary text-sm px-5 py-2.5 flex items-center gap-2"
+                  className="btn btn-primary text-sm px-4 py-2 flex items-center gap-1"
                 >
                   <MdLogout /> Logout
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login"    className="btn btn-outline text-sm px-5 py-2.5 flex items-center gap-2"><MdLogin /> Login</Link>
-                <Link to="/register" className="btn btn-primary text-sm px-5 py-2.5 flex items-center gap-2"><MdPersonAdd /> Register</Link>
+                <Link to="/login" className="btn btn-outline text-sm px-4 py-2 flex items-center gap-1">
+                  <MdLogin /> Login
+                </Link>
+                <Link to="/register" className="btn btn-primary text-sm px-4 py-2 flex items-center gap-1">
+                  <MdPersonAdd /> Register
+                </Link>
               </>
             )}
           </div>
@@ -123,7 +137,6 @@ const Navbar = () => {
                     >
                       <MdDashboard className="mr-2" /> Dashboard
                     </Link>
-
                     <button
                       onClick={handleLogout}
                       className="btn btn-primary text-sm justify-center"
@@ -133,8 +146,12 @@ const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    <Link to="/login"    className="btn btn-outline text-sm text-center justify-center"><MdLogin className="mr-2"/>Login</Link>
-                    <Link to="/register" className="btn btn-primary text-sm text-center justify-center"><MdPersonAdd className="mr-2"/>Register</Link>
+                    <Link to="/login" className="btn btn-outline text-sm text-center justify-center">
+                      <MdLogin className="mr-2"/>Login
+                    </Link>
+                    <Link to="/register" className="btn btn-primary text-sm text-center justify-center">
+                      <MdPersonAdd className="mr-2"/>Register
+                    </Link>
                   </>
                 )}
               </div>

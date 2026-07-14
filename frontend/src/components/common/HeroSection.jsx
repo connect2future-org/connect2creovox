@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { FaArrowRight, FaPaintBrush, FaExpandArrowsAlt, FaClock } from "react-icons/fa";
 import creativeStudioCard from "../../assets/creative-studio-card.png";
 import peepingMale from "../../assets/characters/peeping_male.png";
+import HeroArchBackground from "./HeroArchBackground";
 
 const fadeLeft  = { hidden: { opacity: 0, x: -40 }, show: { opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut" } } };
 const fadeRight = { hidden: { opacity: 0, x:  50 }, show: { opacity: 1, x: 0, transition: { duration: 0.9, ease: "easeOut" } } };
@@ -18,13 +19,16 @@ const HeroSection = () => {
   return (
     <section className="hero-bg relative flex items-center overflow-x-hidden overflow-y-visible pt-24 lg:pt-16 pb-8 sm:pb-12 lg:py-0">
 
-      {/* Ambient blobs */}
-      <div className="absolute top-0 right-0 w-[560px] h-[560px] rounded-full pointer-events-none"
-           style={{ background: "radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%)" }} />
-      <div className="absolute bottom-0 left-0 w-[380px] h-[380px] rounded-full pointer-events-none"
-           style={{ background: "radial-gradient(circle, rgba(236,72,153,0.07) 0%, transparent 70%)" }} />
+      {/* Architectural dome */}
+      <HeroArchBackground />
 
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12 lg:py-20 w-full">
+      {/* Ambient blobs */}
+      <div className="absolute top-0 right-0 w-[560px] h-[560px] rounded-full pointer-events-none z-0"
+           style={{ background: "radial-gradient(circle, rgba(190,24,93,0.12) 0%, transparent 70%)" }} />
+      <div className="absolute bottom-0 left-0 w-[380px] h-[380px] rounded-full pointer-events-none z-0"
+           style={{ background: "radial-gradient(circle, rgba(190,24,93,0.07) 0%, transparent 70%)" }} />
+
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12 lg:py-20 w-full relative z-10">
         <div className="grid lg:grid-cols-2 gap-14 xl:gap-20 items-center">
 
           {/* ── LEFT ── */}
@@ -101,13 +105,12 @@ const HeroSection = () => {
             animate="show"
             className="flex justify-center lg:justify-end"
           >
-            {/* Wrapper: ensures mascot is always attached to card */}
-            <div className="relative inline-block mt-6 sm:mt-8 lg:mt-0">
-              {/* Glow halo – now scoped to the wrapper */}
+            <div className="relative inline-block mt-6 sm:mt-8 lg:mt-0 z-20">
+              {/* Glow halo */}
               <div className="absolute inset-0 rounded-[28px] blur-3xl opacity-30 pointer-events-none"
-                   style={{ background: "linear-gradient(135deg,#f9a8d4,#ec4899,#a855f7)" }} />
+                   style={{ background: "linear-gradient(135deg,#f9a8d4,#be185d,#a855f7)" }} />
 
-              {/* Peeping Mascot – positioned relative to the wrapper (card) */}
+              {/* Peeping Mascot */}
               <motion.img
                 src={peepingMale}
                 alt="Mascot"
@@ -166,7 +169,7 @@ const HeroSection = () => {
                   border
                   border-white/60
                 "
-                style={{ filter: "drop-shadow(0 32px 64px rgba(236,72,153,0.2))" }}
+                style={{ filter: "drop-shadow(0 32px 64px rgba(190,24,93,0.2))" }}
               />
             </div>
           </motion.div>
