@@ -3,7 +3,7 @@ import {
   Routes,
   Route,
   useLocation,
-  Navigate,   // ✅ imported
+  Navigate,
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
@@ -38,12 +38,14 @@ import MascotSpeech from "./components/common/MascotSpeech";
 import ScrollToTop from "./components/common/ScrollToTop";
 import ScrollToTopButton from "./components/common/ScrollToTopButton";
 
+import CookieConsent from "./components/common/CookieConsent"; // ✅ new import
+
 function AppContent() {
   const location = useLocation();
 
   const showMascots =
-  location.pathname === "/" ||
-  location.pathname === "/about";
+    location.pathname === "/" ||
+    location.pathname === "/about";
 
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden">
@@ -121,13 +123,15 @@ function AppContent() {
       </main>
 
       {/* Show mascots ONLY on Home */}
+      {showMascots && (
+        <>
+          <MascotSpeech />
+          <AnimatedMascots />
+        </>
+      )}
 
-            {showMascots && (
-            <>
-                <MascotSpeech />
-                <AnimatedMascots />
-            </>
-            )}
+      {/* ✅ Global Cookie Consent – appears on every page */}
+      <CookieConsent />
 
       <Footer />
 
