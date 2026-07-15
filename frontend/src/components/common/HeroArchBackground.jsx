@@ -32,7 +32,7 @@ const HeroArchBackground = () => {
       className="absolute inset-0 pointer-events-none overflow-hidden z-0"
       style={{
         // Wide, shallow dome: 90% width, 40% height, centered at 25% from left, starting at top
-        clipPath: 'ellipse(90% 52% at 25% 0%)',
+        clipPath: 'ellipse(90% 55% at 25% 0%)',
         WebkitClipPath: 'ellipse(90% 40% at 25% 0%)',
       }}
     >
