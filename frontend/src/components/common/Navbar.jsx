@@ -43,16 +43,16 @@ const Navbar = () => {
 
   return (
     <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-400 ${scrolled ? "navbar-blur" : "bg-white/90 backdrop-blur-md"}`}>
-      <div className="max-w-7xl mx-auto px-5 sm:px-8">
-        <div className="flex items-center justify-between h-[72px] md:h-[82px]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-[60px] md:h-[70px]">
 
-          {/* ── Logo (left) ── */}
-          <div className="flex-shrink-0 flex items-center">
-            <Logo className="h-10 md:h-12 lg:h-14 w-auto" />
+          {/* Logo – shifted down for vertical alignment */}
+          <div className="flex-shrink-0 flex items-center -ml-2 md:-ml-4 translate-y-[8px]">
+            <Logo className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto" />
           </div>
 
-          {/* ── Desktop links (center) ── */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 mx-4">
+          {/* Desktop Navigation – centered */}
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 flex-1 justify-center">
             {links.map((l) => (
               <Link
                 key={l.name}
@@ -64,8 +64,8 @@ const Navbar = () => {
             ))}
           </nav>
 
-          {/* ── Desktop auth (right) ── */}
-          <div className="hidden lg:flex items-center gap-2">
+          {/* Desktop Auth – pushed far right */}
+          <div className="hidden lg:flex items-center gap-2 ml-4 xl:ml-8">
             {user ? (
               <>
                 <NotificationBell />
@@ -95,18 +95,20 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* ── Mobile toggle ── */}
-          <button
-            className="lg:hidden text-gray-700 text-xl p-2 rounded-xl hover:bg-pink-50 transition-colors"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <FaTimes /> : <FaBars />}
-          </button>
+          {/* Mobile Hamburger – always on the right */}
+          <div className="lg:hidden flex items-center">
+            <button
+              className="text-gray-700 text-xl p-2 rounded-xl hover:bg-pink-50 transition-colors"
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <FaTimes /> : <FaBars />}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ── Mobile drawer ── */}
+      {/* Mobile Drawer – unchanged */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -124,6 +126,7 @@ const Navbar = () => {
                   className={`py-3 px-4 rounded-xl font-medium text-sm transition-colors ${
                     isActive(l.path) ? "bg-pink-50 text-brand-600" : "text-gray-700 hover:bg-gray-50"
                   }`}
+                  onClick={() => setIsOpen(false)}
                 >
                   {l.name}
                 </Link>
@@ -134,11 +137,12 @@ const Navbar = () => {
                     <Link
                       to={user.role === "admin" ? "/admin-dashboard" : "/user-dashboard"}
                       className="btn btn-outline text-sm text-center justify-center"
+                      onClick={() => setIsOpen(false)}
                     >
                       <MdDashboard className="mr-2" /> Dashboard
                     </Link>
                     <button
-                      onClick={handleLogout}
+                      onClick={() => { handleLogout(); setIsOpen(false); }}
                       className="btn btn-primary text-sm justify-center"
                     >
                       <MdLogout className="mr-2" /> Logout
@@ -146,10 +150,10 @@ const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    <Link to="/login" className="btn btn-outline text-sm text-center justify-center">
+                    <Link to="/login" className="btn btn-outline text-sm text-center justify-center" onClick={() => setIsOpen(false)}>
                       <MdLogin className="mr-2"/>Login
                     </Link>
-                    <Link to="/register" className="btn btn-primary text-sm text-center justify-center">
+                    <Link to="/register" className="btn btn-primary text-sm text-center justify-center" onClick={() => setIsOpen(false)}>
                       <MdPersonAdd className="mr-2"/>Register
                     </Link>
                   </>

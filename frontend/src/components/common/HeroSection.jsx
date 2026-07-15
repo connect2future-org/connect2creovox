@@ -17,7 +17,7 @@ const HeroSection = () => {
   ];
 
   return (
-    <section className="hero-bg relative flex items-center overflow-x-hidden overflow-y-visible pt-24 lg:pt-16 pb-8 sm:pb-12 lg:py-0">
+    <section className="hero-bg relative flex items-center overflow-x-hidden overflow-y-visible pt-16 sm:pt-20 lg:pt-16 pb-8 sm:pb-12 lg:py-0">
 
       {/* Architectural dome */}
       <HeroArchBackground />
@@ -28,16 +28,16 @@ const HeroSection = () => {
       <div className="absolute bottom-0 left-0 w-[380px] h-[380px] rounded-full pointer-events-none z-0"
            style={{ background: "radial-gradient(circle, rgba(190,24,93,0.07) 0%, transparent 70%)" }} />
 
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12 lg:py-20 w-full relative z-10">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-8 sm:py-12 lg:py-20 w-full relative z-10">
         <div className="grid lg:grid-cols-2 gap-14 xl:gap-20 items-center">
 
           {/* ── LEFT ── */}
           <motion.div variants={fadeLeft} initial="hidden" animate="show">
 
-            {/* Eyebrow pill */}
+            {/* Eyebrow pill – moved up closer to navbar */}
             <motion.div
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-brand-200 bg-brand-50 text-brand-600 text-xs font-bold tracking-wider uppercase mb-8"
+              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-brand-200 bg-brand-50 text-brand-600 text-xs font-bold tracking-wider uppercase mb-6 sm:mb-8"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse-soft" />
               We Build Digital Possibilities
@@ -145,7 +145,7 @@ const HeroSection = () => {
                 "
               />
 
-              {/* Creative Studio Card */}
+              {/* Creative Studio Card – increased size on mobile */}
               <motion.img
                 src={creativeStudioCard}
                 alt="Creative Studio – Connect2Creovox"
@@ -158,9 +158,9 @@ const HeroSection = () => {
                   relative
                   z-30
                   block
-                  w-[200px]
-                  sm:w-[240px]
-                  md:w-[270px]
+                  w-[230px]
+                  sm:w-[260px]
+                  md:w-[280px]
                   lg:w-full
                   max-w-[400px]
                   xl:max-w-[440px]

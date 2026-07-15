@@ -2,6 +2,8 @@ import { useRef, useEffect } from 'react';
 import { motion, animate } from 'framer-motion';
 import { services } from '../../data/servicesData';
 
+
+const DOME = "ellipse(90% 71% at 25% 0%)";
 const allImages = services
   .filter(s => s.images && s.images.length > 0)
   .flatMap(s => s.images)
@@ -29,11 +31,21 @@ const HeroArchBackground = () => {
 
   return (
     <div
-      className="absolute inset-0 pointer-events-none overflow-hidden z-0"
+      className="
+        absolute
+        top-0
+        left-0
+        right-0
+        pointer-events-none
+        overflow-hidden
+        z-0
+      "
+      
+
       style={{
-        // Wide, shallow dome: 90% width, 40% height, centered at 25% from left, starting at top
-        clipPath: 'ellipse(90% 55% at 25% 0%)',
-        WebkitClipPath: 'ellipse(90% 40% at 25% 0%)',
+          height: "650px",
+          clipPath: DOME,
+          WebkitClipPath: DOME,
       }}
     >
       {/* Glass base */}
