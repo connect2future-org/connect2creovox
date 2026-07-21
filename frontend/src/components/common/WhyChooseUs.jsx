@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { FaRocket, FaPalette, FaCode, FaHeadset, FaCheckCircle } from "react-icons/fa";
 import SectionPeep from "./SectionPeep";
+import { useState, useEffect, useRef } from "react";
 
 const features = [
   {
@@ -24,6 +25,64 @@ const features = [
     gradient: "from-cyan-500 to-blue-600",
   },
 ];
+
+// ── Animated Stat Component ──
+const AnimatedStat = ({ value, label }) => {
+  // Parse number and suffix
+  const match = value.match(/^(\d+)(.*)$/);
+  const targetNum = parseInt(match?.[1] || "0", 10);
+  const suffix = match?.[2] || "";
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
+  const hasAnimated = useRef(false);
+
+  // Intersection Observer – trigger once when visible
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current && targetNum > 0) {
+          hasAnimated.current = true;
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [targetNum]);
+
+  // Animate count from 0 → targetNum
+  useEffect(() => {
+    if (!isVisible) return;
+    let startTime = null;
+    const duration = 1500; // 1.5s
+
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      const current = Math.floor(eased * targetNum);
+      setCount(current);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        setCount(targetNum);
+      }
+    };
+    requestAnimationFrame(step);
+  }, [isVisible, targetNum]);
+
+  return (
+    <div ref={ref} className="bg-white py-8 text-center">
+      <p className="text-3xl font-extrabold gradient-text">
+        {count}
+        {suffix}
+      </p>
+      <p className="text-ink-muted text-sm mt-1 font-medium">{label}</p>
+    </div>
+  );
+};
 
 const WhyChooseUs = () => (
   <section className="section" style={{ background: "#faf6f0" }}>
@@ -55,7 +114,7 @@ const WhyChooseUs = () => (
         </h2>
       </motion.div>
 
-      {/* Reduced feature cards grid */}
+      {/* Feature cards – unchanged */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {features.map((feature, index) => {
           const Icon = feature.icon;
@@ -85,17 +144,14 @@ const WhyChooseUs = () => (
                 overflow-hidden
               `}
             >
-              {/* Inner glow and blur highlights */}
               <div className="absolute inset-0 bg-white/10 rounded-2xl pointer-events-none" />
               <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-2xl pointer-events-none" />
               <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
-              {/* Icon with smaller translucent circle */}
               <div className="relative z-10 mb-2 p-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 shadow-md group-hover:rotate-8 group-hover:scale-110 transition-all duration-300">
                 <Icon className="w-6 h-6 text-white" />
               </div>
 
-              {/* Smaller title */}
               <h3 className="relative z-10 text-white font-bold text-sm text-center tracking-tight">
                 {feature.title}
               </h3>
@@ -104,7 +160,7 @@ const WhyChooseUs = () => (
         })}
       </div>
 
-      {/* Stats strip – unchanged */}
+      {/* Stats strip – animated numbers from 0 to final */}
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -118,10 +174,7 @@ const WhyChooseUs = () => (
           { n: "2+",   label: "Years Experience" },
           { n: "24/7", label: "Support Available" },
         ].map((s, i) => (
-          <div key={i} className="bg-white py-8 text-center">
-            <p className="text-3xl font-extrabold gradient-text">{s.n}</p>
-            <p className="text-ink-muted text-sm mt-1 font-medium">{s.label}</p>
-          </div>
+          <AnimatedStat key={i} value={s.n} label={s.label} />
         ))}
       </motion.div>
 
