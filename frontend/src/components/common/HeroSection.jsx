@@ -57,7 +57,7 @@ const HeroSection = () => {
             {/* Body */}
             <motion.p
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32, duration: 0.6 }}
-              className="mt-6 text-ink-muted leading-relaxed max-w-[520px]"
+              className="mt-6 text-black font-semibold leading-relaxed max-w-[520px]"
               style={{ fontSize: "1.05rem" }}
             >
             Connect2Creovox empowers startups, enterprises and growing businesses

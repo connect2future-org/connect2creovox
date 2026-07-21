@@ -224,7 +224,7 @@ const Contact = () => {
 
       items: [
 
-        "Docs@connect2future.com",
+        "hr@connect2future.com",
 
         "Support@connect2future.com",
 
@@ -232,7 +232,7 @@ const Contact = () => {
 
       links: [
 
-        "mailto:Docs@connect2future.com",
+        "mailto:hr@connect2future.com",
 
         "mailto:Support@connect2future.com",
 

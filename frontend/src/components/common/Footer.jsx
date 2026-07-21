@@ -3,7 +3,7 @@ import logo from "../../assets/logo_footer.png";
 import React from "react";
 import {
   FaLinkedinIn, FaInstagram, FaFacebookF,
-  FaEnvelope, FaPhone, FaMapMarkerAlt, FaGlobe,
+  FaEnvelope, FaPhoneAlt, FaMapMarkerAlt, FaGlobe,
   FaWhatsapp,
 } from "react-icons/fa";
 
@@ -35,7 +35,7 @@ const Footer = () => (
     {/* ── Top gradient bar ── */}
     <div className="h-1 w-full" style={{ background: "linear-gradient(90deg,#ec4899,#db2777,#be185d)" }} />
 
-    {/* ── Main grid – reduced padding ── */}
+    {/* ── Main grid ── */}
     <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12">
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
 
@@ -44,7 +44,7 @@ const Footer = () => (
           <img
             src={logo}
             alt="Connect2Creovox"
-            className="h-24 w-auto object-contain mb-4"
+            className="h-24 w-auto object-contain -mt-9 mb-4"
           />
           <p className="text-gray-400 text-sm leading-relaxed mb-5 max-w-xs">
             We help businesses connect, innovate and grow in the digital world through design, technology and strategy.
@@ -59,7 +59,7 @@ const Footer = () => (
           </div>
         </div>
 
-        {/* Quick links – brighter default, pink hover, smooth transition */}
+        {/* Quick links */}
         <div>
           <h4 className="text-white text-xs font-bold uppercase tracking-[3px] mb-5">Quick Links</h4>
           <ul className="space-y-2.5">
@@ -76,7 +76,7 @@ const Footer = () => (
           </ul>
         </div>
 
-        {/* Services – same style */}
+        {/* Services */}
         <div>
           <h4 className="text-white text-xs font-bold uppercase tracking-[3px] mb-5">Services</h4>
           <ul className="space-y-2.5">
@@ -93,7 +93,7 @@ const Footer = () => (
           </ul>
         </div>
 
-        {/* Contact – unchanged */}
+        {/* Contact */}
         <div>
           <h4 className="text-white text-xs font-bold uppercase tracking-[3px] mb-5">Get In Touch</h4>
           <ul className="space-y-4">
@@ -106,22 +106,22 @@ const Footer = () => (
               </a>
             </li>
             <li>
-              <a href="mailto:Docs@connect2future.com" className="flex items-start gap-3 group">
+              <a href="mailto:hr@connect2future.com" className="flex items-start gap-3 group">
                 <FaEnvelope className="text-brand-500 mt-0.5 shrink-0 text-sm" />
                 <span className="text-gray-400 text-sm group-hover:text-brand-400 transition-colors leading-snug">
-                  Docs@connect2future.com
+                  hr@connect2future.com
                 </span>
               </a>
             </li>
             <li>
               <a href="tel:+918088980347" className="flex items-center gap-3 group">
-                <FaPhone className="text-brand-500 shrink-0 text-sm" />
+                <FaPhoneAlt className="text-brand-500 shrink-0 text-sm" />
                 <span className="text-gray-400 text-sm group-hover:text-brand-400 transition-colors">+91 80889 80347</span>
               </a>
             </li>
             <li>
               <a href="tel:+917019436720" className="flex items-center gap-3 group">
-                <FaPhone className="text-brand-500 shrink-0 text-sm" />
+                <FaPhoneAlt className="text-brand-500 shrink-0 text-sm" />
                 <span className="text-gray-400 text-sm group-hover:text-brand-400 transition-colors">+91 70194 36720</span>
               </a>
             </li>
