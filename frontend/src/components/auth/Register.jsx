@@ -75,71 +75,79 @@ const Register = () => {
   ];
 
   return (
-    <div
-      className="min-h-screen grid lg:grid-cols-2 pt-20 pb-8"
-      style={{ background: "linear-gradient(135deg,#be185d 0%,#db2777 50%,#ec4899 100%)" }}
-    >
-      {/* Register passes mascotBottom = -32 (moves mascot up) */}
-      <AuthBrandPanel
-        gradient="linear-gradient(135deg,#be185d 0%,#db2777 50%,#ec4899 100%)"
-        title="Welcome to Connect2Creovox"
-        subtitle="Create your account and unlock a smarter way to manage your digital projects."
-        listItems={[
-          "Track project progress",
-          "Receive real-time updates",
-          "Download deliverables",
-          "Communicate directly with our team",
-          "Manage bookings and services effortlessly",
-        ]}
-        mascotBottom={-32}
-      />
+    <>
+      <style>{`
+        @media (max-height: 800px) {
+          .auth-grid {
+            min-height: auto !important;
+          }
+        }
+      `}</style>
+      <div
+        className="auth-grid grid lg:grid-cols-2 pt-16 lg:pt-20 pb-8 lg:min-h-screen"
+        style={{ background: "linear-gradient(135deg,#be185d 0%,#db2777 50%,#ec4899 100%)" }}
+      >
+        <AuthBrandPanel
+          gradient="linear-gradient(135deg,#be185d 0%,#db2777 50%,#ec4899 100%)"
+          title="Welcome to Connect2Creovox"
+          subtitle="Create your account and unlock a smarter way to manage your digital projects."
+          listItems={[
+            "Track project progress",
+            "Receive real-time updates",
+            "Download deliverables",
+            "Communicate directly with our team",
+            "Manage bookings and services effortlessly",
+          ]}
+          mascotBottom={-32}
+        />
 
-      {/* Right panel – tightened spacing to fit viewport */}
-      <div className="flex items-center justify-center bg-white px-6 py-5 lg:py-7">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="w-full max-w-md"
-        >
-          <h2 className="text-3xl font-bold mb-1">Create Account</h2>
-          <p className="text-gray-500 mb-4">Start your journey with Connect2Creovox.</p>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            {fields.map((field) => (
-              <div key={field.name}>
-                <label className="block text-sm font-semibold mb-1">{field.label}</label>
-                <div className="input-group">
-                  <span className="input-group-icon text-sm">{field.icon}</span>
-                  <input
-                    type={field.type}
-                    name={field.name}
-                    value={formData[field.name]}
-                    onChange={handleChange}
-                    placeholder={field.placeholder}
-                    className="input input-icon"
-                    required
-                  />
+        {/* Right panel – align top on small screens, center on desktop */}
+        <div className="flex items-start justify-center lg:items-center bg-white px-6 py-8 lg:py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="w-full max-w-md"
+          >
+            <h2 className="text-3xl font-bold mb-1">Create Account</h2>
+            <p className="text-gray-500 mb-4">Start your journey with Connect2Creovox.</p>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              {fields.map((field) => (
+                <div key={field.name}>
+                  <label className="block text-sm font-semibold mb-1">{field.label}</label>
+                  <div className="input-group">
+                    <span className="input-group-icon text-sm">{field.icon}</span>
+                    <input
+                      type={field.type}
+                      name={field.name}
+                      value={formData[field.name]}
+                      onChange={handleChange}
+                      placeholder={field.placeholder}
+                      className="input input-icon"
+                      required
+                    />
+                  </div>
+                  {errors[field.name] && <p className="text-red-500 text-xs mt-1">{errors[field.name]}</p>}
                 </div>
-                {errors[field.name] && <p className="text-red-500 text-xs mt-1">{errors[field.name]}</p>}
-              </div>
-            ))}
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary w-full justify-center py-4 mt-1 text-base"
-            >
-              {loading ? "Creating Account..." : <>Create Account <FaArrowRight /></>}
-            </button>
-          </form>
-          <p className="text-center mt-4 text-sm text-gray-500">
-            Already have an account?{" "}
-            <Link to="/login" className="text-pink-600 font-semibold hover:text-pink-700 transition-colors">
-              Sign In
-            </Link>
-          </p>
-        </motion.div>
+              ))}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary w-full justify-center py-4 mt-1 text-base"
+              >
+                {loading ? "Creating Account..." : <>Create Account <FaArrowRight /></>}
+              </button>
+            </form>
+            <p className="text-center mt-4 text-sm text-gray-500">
+              Already have an account?{" "}
+              <Link to="/login" className="text-pink-600 font-semibold hover:text-pink-700 transition-colors">
+                Sign In
+              </Link>
+            </p>
+          </motion.div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
