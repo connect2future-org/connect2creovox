@@ -25,7 +25,7 @@ const serviceLinks = [
 const socials = [
   { icon: <FaGlobe />,      href: "https://connect2future.in",                                          label: "Website" },
   { icon: <FaLinkedinIn />, href: "https://www.linkedin.com/company/connect2future/",                    label: "LinkedIn" },
-  { icon: <FaInstagram />,  href: "https://www.instagram.com/_connect2future__?igsh=MnVxdXd4bzgzbDho", label: "Instagram" },
+  { icon: <FaInstagram />,  href: "https://www.instagram.com/the_c2f_?utm_source=qr&igsh=MWpvMDF4anE5bnA3eQ==", label: "Instagram" },
   { icon: <FaWhatsapp />,   href: "https://wa.me/917019436720?text=Hello%20Connect2Creovox,%20I%20would%20like%20to%20know%20more%20about%20your%20services.", label: "WhatsApp" },
 ];
 
