@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "lint:config": "node scripts/check-dynamic-config.mjs",
+    "check": "npm run lint:config",
+    "ci:frontend": "npm run lint:config && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
