@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaBell } from "react-icons/fa";
 import api from "../../utils/api";
 import toast from "react-hot-toast";
+import { apiRoute } from "../../utils/apiRoutes";
 
 const NotificationBell = () => {
   const [notifications, setNotifications] = useState([]);
@@ -18,7 +19,9 @@ const NotificationBell = () => {
     try {
       setLoading(true);
 
-      const response = await api.get("/api/notifications");
+      const response = await api.get(
+        apiRoute("notifications")
+      );
 
       setNotifications(response.data.notifications || []);
     } catch (error) {
@@ -78,7 +81,9 @@ useEffect(() => {
 
   const markRead = async (id) => {
     try {
-      await api.put(`/api/notifications/${id}`);
+      await api.put(
+        apiRoute(`notifications/${id}`)
+      );
 
       fetchNotifications();
     } catch (error) {
@@ -93,7 +98,9 @@ useEffect(() => {
 
   const markAllRead = async () => {
     try {
-      await api.put("/api/notifications/read-all");
+      await api.put(
+        apiRoute("notifications/read-all")
+      );
 
       fetchNotifications();
 

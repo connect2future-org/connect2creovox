@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import toast from "react-hot-toast";
 import api from "../utils/api";
+import { apiRoute } from "../utils/apiRoutes";
 
 const Contact = () => {
 
@@ -127,7 +128,7 @@ const Contact = () => {
 
       const response = await api.post(
 
-        "/api/messages",
+        apiRoute("messages"),
 
         formData
 

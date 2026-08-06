@@ -4,6 +4,7 @@ import { FaUser, FaEnvelope, FaLock, FaArrowRight, FaPhoneAlt } from "react-icon
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import api from "../../utils/api";
+import { apiRoute } from "../../utils/apiRoutes";
 import AuthBrandPanel from "./AuthBrandPanel";
 
 const Register = () => {
@@ -56,7 +57,10 @@ const Register = () => {
     setLoading(true);
     try {
       const { confirmPassword, ...data } = formData;
-      const response = await api.post("/api/auth/register", data);
+      const response = await api.post(
+        apiRoute("auth/register"),
+        data
+      );
       toast.success(response.data.message || "Registration Successful");
       navigate("/login");
     } catch (error) {

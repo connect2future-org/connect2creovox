@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../utils/api";
+import { apiRoute } from "../utils/apiRoutes";
 import toast from "react-hot-toast";
 import { FaArrowRight, FaUpload } from "react-icons/fa";
 
@@ -158,7 +159,7 @@ const allowedExtensions = [
 
       });
 
-      await api.post("/api/bookings/create", data, {
+      await api.post(apiRoute("bookings/create"), data, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",

@@ -1,5 +1,9 @@
 import axios from "axios";
 import toast from "react-hot-toast";
+import {
+  normalizeApiBaseUrl,
+  normalizeApiRequestPath,
+} from "./apiRoutes";
 
 // ======================================
 // Axios Instance
@@ -8,9 +12,7 @@ import toast from "react-hot-toast";
 const api = axios.create({
 
   baseURL:
-    (import.meta.env.VITE_API_URL || "")
-      .trim()
-      .replace(/\/$/, ""),
+    normalizeApiBaseUrl(import.meta.env.VITE_API_URL),
 
   timeout: 15000,
 
@@ -29,6 +31,9 @@ if (!import.meta.env.VITE_API_URL) {
 api.interceptors.request.use(
 
   (config) => {
+
+    config.url =
+      normalizeApiRequestPath(config.url);
 
     const token =
       localStorage.getItem("token");

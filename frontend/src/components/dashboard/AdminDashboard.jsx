@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
+import {
+  apiRoute,
+  normalizeApiBaseUrl,
+} from "../../utils/apiRoutes";
 import toast from "react-hot-toast";
 
 import {
@@ -19,11 +23,8 @@ import {
   FaTrash,
 } from "react-icons/fa";
 
-
 const BASE_URL =
-  (import.meta.env.VITE_API_URL || "")
-    .trim()
-    .replace(/\/$/, "");
+  normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
 
 
 
@@ -49,7 +50,7 @@ const AdminDashboard = () => {
       setLoading(true);
 
       const response =
-        await api.get("/api/bookings/all");
+        await api.get(apiRoute("bookings/all"));
 
       setBookings(
         response.data.bookings || []
@@ -94,7 +95,9 @@ const AdminDashboard = () => {
 
       await api.put(
 
-        `/api/bookings/status/${bookingId}`,
+        apiRoute(
+          `bookings/status/${bookingId}`
+        ),
 
         { status }
 
@@ -131,7 +134,9 @@ const AdminDashboard = () => {
 
       await api.put(
 
-        `/api/bookings/notes/${bookingId}`,
+        apiRoute(
+          `bookings/notes/${bookingId}`
+        ),
 
         {
 
@@ -233,7 +238,9 @@ const allowedTypes = [
 
       await api.post(
 
-        `/api/bookings/upload-file/${bookingId}`,
+        apiRoute(
+          `bookings/upload-file/${bookingId}`
+        ),
 
         formData,
 
@@ -334,7 +341,7 @@ const viewFile = (file) => {
 const downloadFile = (bookingId, fileId) => {
 
   window.location.href =
-    `${BASE_URL}/api/bookings/file/download/${bookingId}/${fileId}`;
+    `${BASE_URL}${apiRoute(`bookings/file/download/${bookingId}/${fileId}`)}`;
 
 };
 
@@ -385,7 +392,9 @@ const downloadReferenceFile = async (bookingId, file) => {
 
     const response = await api.get(
 
-      `/api/bookings/reference/download/${bookingId}/${encodeURIComponent(file.originalName)}`,
+      apiRoute(
+        `bookings/reference/download/${bookingId}/${encodeURIComponent(file.originalName)}`
+      ),
 
       {
 
