@@ -74,15 +74,13 @@ app.use(limiter);
 console.log("MONGODB_URI =", process.env.MONGODB_URI);
 connectDB();
 
-const allowedOrigins = [
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",")
+      .map((url) => url.trim())
+      .filter(Boolean)
+  : [];
 
-  "http://localhost:5173",
-
-  "http://localhost:5174",
-
-  "https://luminous-salmiakki-064f96.netlify.app"
-
-];
+console.log("Allowed Origins:", allowedOrigins);
 
 app.use(
 
