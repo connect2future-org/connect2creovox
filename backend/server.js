@@ -87,6 +87,8 @@ app.use(
   cors({
 
     origin: function (origin, callback) {
+      console.log("Incoming Origin:", origin);
+      console.log("Allowed Origins:", allowedOrigins);
 
       // Allow requests without an Origin (Postman, Render health checks, etc.)
       if (!origin) return callback(null, true);
