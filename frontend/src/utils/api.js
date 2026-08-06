@@ -8,12 +8,19 @@ import toast from "react-hot-toast";
 const api = axios.create({
 
   baseURL:
-    import.meta.env.VITE_API_URL ||
-    "http://localhost:5000",
+    (import.meta.env.VITE_API_URL || "")
+      .trim()
+      .replace(/\/$/, ""),
 
   timeout: 15000,
 
 });
+
+if (!import.meta.env.VITE_API_URL) {
+  console.warn(
+    "VITE_API_URL is not set. API calls will use relative URLs."
+  );
+}
 
 // ======================================
 // Request Interceptor
