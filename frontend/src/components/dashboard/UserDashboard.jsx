@@ -3,6 +3,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import api from "../../utils/api";
+import { apiRoute } from "../../utils/apiRoutes";
 import {
   FaUser,
   FaProjectDiagram,
@@ -39,7 +40,7 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get("/api/bookings/my-bookings")
+    api.get(apiRoute("bookings/my-bookings"))
       .then(r => setBookings(r.data.bookings || []))
       .catch(console.error)
       .finally(() => setLoading(false));
