@@ -114,9 +114,9 @@ const Footer = () => (
               </a>
             </li>
             <li>
-              <a href="tel:+918088980347" className="flex items-center gap-3 group">
+              <a href="tel:+91 9035999272" className="flex items-center gap-3 group">
                 <FaPhoneAlt className="text-brand-500 shrink-0 text-sm" />
-                <span className="text-gray-400 text-sm group-hover:text-brand-400 transition-colors">+91 80889 80347</span>
+                <span className="text-gray-400 text-sm group-hover:text-brand-400 transition-colors">+91  90359 99272</span>
               </a>
             </li>
             <li>
